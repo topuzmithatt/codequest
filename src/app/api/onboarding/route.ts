@@ -22,62 +22,55 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Yetkisiz erişim." }, { status: 401 });
   }
 
-  // ── Kullanıcı DB'de yoksa oluştur ───────────────────────────
-  // Email ile kayıt olmuş kullanıcıların gerçek email'ini koru
-  const isAnon = !user.email;
-  const userEmail = user.email || `anon_${user.id}@codequest.app`;
-
-  await prisma.user.upsert({
-    where:  { id: user.id },
-    update: {
-      // Sadece anonim kullanıcının email'ini güncelle, gerçek email'e dokunma
-      ...(isAnon ? { email: userEmail } : {}),
-    },
-    create: {
-      id:       user.id,
-      email:    userEmail,
-      username: `user_${user.id.slice(0, 8)}`,
-    },
-  });
-
-  // ── Body doğrulama ────────────────────────────────────────────
-  let body: OnboardingAnswers;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Geçersiz JSON." }, { status: 400 });
-  }
+    const isAnon = !user.email;
+    const userEmail = user.email || `anon_${user.id}@codequest.app`;
 
-  const { language, goal, experience } = body;
+    await prisma.user.upsert({
+      where:  { id: user.id },
+      update: {
+        ...(isAnon ? { email: userEmail } : {}),
+      },
+      create: {
+        id:       user.id,
+        email:    userEmail,
+        username: `user_${user.id.slice(0, 8)}`,
+      },
+    });
 
-  if (!language || !goal || !experience) {
-    return NextResponse.json(
-      { error: "language, goal ve experience alanları zorunlu." },
-      { status: 400 }
-    );
-  }
+    let body: OnboardingAnswers;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Geçersiz JSON." }, { status: 400 });
+    }
 
-  // ── Aynı dil için zaten LearningPath varsa tekrar oluşturma ──
-  const existingPath = await prisma.learningPath.findFirst({
-    where: {
-      userId: user.id,
-      language: language,
-    },
-  });
+    const { language, goal, experience } = body;
 
-  if (existingPath) {
-    const firstTopic = existingPath.topicsOrder[0] ?? "intro";
-    return NextResponse.json(
-      { learningPathId: existingPath.id, redirectTo: `/learn/${firstTopic}?lpId=${existingPath.id}` },
-      { status: 200 }
-    );
-  }
+    if (!language || !goal || !experience) {
+      return NextResponse.json(
+        { error: "language, goal ve experience alanları zorunlu." },
+        { status: 400 }
+      );
+    }
 
-  // ── AI onboarding + DB kayıt ──────────────────────────────────
-  try {
+    const existingPath = await prisma.learningPath.findFirst({
+      where: {
+        userId: user.id,
+        language: language,
+      },
+    });
+
+    if (existingPath) {
+      const firstTopic = existingPath.topicsOrder[0] ?? "intro";
+      return NextResponse.json(
+        { learningPathId: existingPath.id, redirectTo: `/learn/${firstTopic}?lpId=${existingPath.id}` },
+        { status: 200 }
+      );
+    }
+
     const payload = await runOnboarding({ language, goal, experience }, user.id);
 
-    // LearningPath oluştur + onboardingDone işaretle (transaction)
     const [learningPath] = await prisma.$transaction([
       prisma.learningPath.create({ data: payload }),
       prisma.user.update({
@@ -92,8 +85,8 @@ export async function POST(req: NextRequest) {
       { learningPathId: learningPath.id, redirectTo: `/learn/${firstTopic}?lpId=${learningPath.id}` },
       { status: 201 }
     );
-  } catch (err) {
-    console.error("[POST /api/onboarding]", err);
-    return NextResponse.json({ error: "Öğrenme yolu oluşturulamadı." }, { status: 500 });
+  } catch (err: any) {
+    console.error("[POST /api/onboarding] Gelen Hata:", err);
+    return NextResponse.json({ error: "Sunucu hatası: " + (err.message || "Bilinmeyen hata") }, { status: 500 });
   }
 }
