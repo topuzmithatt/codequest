@@ -12,8 +12,9 @@ RUN apt-get update && apt-get install -y \
 # Çalışma dizini oluştur
 WORKDIR /app
 
-# Paket dosyalarını kopyala
+# Paket dosyalarını ve prisma şemasını kopyala
 COPY package*.json ./
+COPY prisma ./prisma
 
 # Bağımlılıkları yükle
 RUN npm install --omit=dev
