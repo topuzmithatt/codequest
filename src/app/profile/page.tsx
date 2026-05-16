@@ -17,6 +17,10 @@ import {
 import { ProfileTour } from "./ProfileTour";
 import { ProfileActions } from "@/components/profile/ProfileActions";
 
+export const metadata = {
+  title: "Profil",
+};
+
 export default async function ProfilePage() {
   const user = await getCurrentUser();
 

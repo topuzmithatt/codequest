@@ -3,6 +3,15 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getChallenge } from "@/lib/learn/getChallenge";
 import { LearnClient } from "./LearnClient";
 
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ topic: string }> }): Promise<Metadata> {
+  const { topic } = await params;
+  return {
+    title: topic.charAt(0).toUpperCase() + topic.slice(1).replace(/-/g, ' '),
+  };
+}
+
 export default async function LearnPage({
   params,
   searchParams,
