@@ -10,21 +10,20 @@ import { prisma } from "@/lib/prisma";
 import { runOnboarding, type OnboardingAnswers } from "@/lib/ai/orchestrator";
 
 export async function POST(req: NextRequest) {
-  // ── Oturum kontrolü ──────────────────────────────────────────
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  );
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Yetkisiz erişim." }, { status: 401 });
-  }
-
   try {
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+      { cookies: { getAll: () => cookieStore.getAll() } }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Yetkisiz erişim." }, { status: 401 });
+    }
+
     const isAnon = !user.email;
     const userEmail = user.email || `anon_${user.id}@codequest.app`;
 

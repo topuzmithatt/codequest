@@ -91,10 +91,9 @@ function outputsMatch(expected: string, actual: string): boolean {
   return false;
 }
 
-const TEMP_DIR = path.join(process.cwd(), '.temp_exec_api');
-if (!fs.existsSync(TEMP_DIR)) {
-  fs.mkdirSync(TEMP_DIR, { recursive: true });
-}
+const TEMP_DIR = path.join(process.env.VERCEL ? "/tmp" : process.cwd(), '.temp_exec_api');
+// Vercel serverless ortamında top-level fs işlemleri crash'e sebep olabilir.
+// Klasör oluşturmayı execute fonksiyonunun içine taşıyoruz.
 
 async function execute(
   code: string,
@@ -102,6 +101,14 @@ async function execute(
   stdin?: string
 ): Promise<RunCodeResult> {
   return new Promise((resolve, reject) => {
+    if (!fs.existsSync(TEMP_DIR)) {
+      try {
+        fs.mkdirSync(TEMP_DIR, { recursive: true });
+      } catch (e) {
+        // Ignore if read-only filesystem on Vercel, it might be /tmp and already exists
+      }
+    }
+
     const sessionId = crypto.randomBytes(8).toString('hex');
     let ext = 'txt';
     let cmd = '';
