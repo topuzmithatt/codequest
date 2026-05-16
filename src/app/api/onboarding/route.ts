@@ -2,6 +2,8 @@
 // POST /api/onboarding — AI onboarding → LearningPath oluştur
 
 import { NextRequest, NextResponse } from "next/server";
+
+export const maxDuration = 60;
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
