@@ -46,7 +46,7 @@ export interface ChallengeSchema {
 // GROQ CLIENT
 // ─────────────────────────────────────────────
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy_key_for_build" });
 const MODEL = "llama-3.3-70b-versatile";
 
 // ─────────────────────────────────────────────
