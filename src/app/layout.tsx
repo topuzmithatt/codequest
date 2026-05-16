@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | CodeQuest',
+    template: 'CodeQuest | %s',
     default: 'CodeQuest',
   },
   description: 'AI Destekli Kodlama Öğrenme Platformu',

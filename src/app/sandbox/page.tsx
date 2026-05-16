@@ -7,6 +7,10 @@
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { SandboxClient }  from "./SandboxClient";
 
+export const metadata = {
+  title: "Sandbox",
+};
+
 export default async function SandboxPage() {
   // Oturum yok → getCurrentUser redirect("/login") çağırır
   const user = await getCurrentUser();

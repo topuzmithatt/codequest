@@ -8,6 +8,15 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies }   from "next/headers";
 import { PortfolioClient } from "./PortfolioClient";
 
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params;
+  return {
+    title: `Portfolyo - @${username}`,
+  };
+}
+
 // ─── Tipler ──────────────────────────────────────────────────────
 
 interface PageProps {
