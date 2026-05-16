@@ -15,21 +15,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Bağımlılıkları yükle
-RUN npm install
-
-# Prisma dosyalarını kopyala ve generate et
-COPY prisma ./prisma
-RUN npx prisma generate
+RUN npm install --omit=dev
 
 # Tüm dosyaları kopyala
 COPY . .
 
-# Next.js uygulamasını derle
-RUN npm run build
-
-# Uygulamanın ve WebSocket sunucusunun portlarını dışarı aç
-EXPOSE 3000
+# WebSocket sunucusunun portunu dışarı aç
 EXPOSE 3001
 
-# Başlatma komutu (package.json'daki start script'i)
-CMD ["npm", "run", "start"]
+# Başlatma komutu
+CMD ["node", "exec-server.js"]
