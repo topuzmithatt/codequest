@@ -25,11 +25,7 @@ interface Challenge {
   testCases: TestCase[];
 }
 
-export interface TestResult {
-  index: number;
-  passed: boolean;
-  output: string;
-}
+import type { TestResult } from "./TerminalPanel";
 
 interface ChallengePanelProps {
   challenge: Challenge;
@@ -68,14 +64,14 @@ export function ChallengePanel({
   // Test sonucu ikonları
   const getTestIcon = (index: number) => {
     if (completedTests.includes(index)) return "✓";
-    const result = testResults?.find((r) => r.index === index);
+    const result = testResults?.[index];
     if (!result) return null;
     return result.passed ? "✓" : "✗";
   };
 
   const getTestColor = (index: number) => {
     if (completedTests.includes(index)) return "#6a9955";
-    const result = testResults?.find((r) => r.index === index);
+    const result = testResults?.[index];
     if (!result) return "#858585";
     return result.passed ? "#6a9955" : "#e05555";
   };

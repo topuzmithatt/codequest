@@ -10,17 +10,11 @@ interface TestCase {
   id?: string;
   input: string;
   expectedOutput: string;
-  description?: string;
+  description?: string | null;
   hints?: string[];
 }
 
-export interface TestResult {
-  input: string;
-  expectedOutput: string;
-  actualOutput: string;
-  passed: boolean;
-  stderr: string;
-}
+import type { TestResult } from "./TerminalPanel";
 
 interface ChallengeWithTests extends Omit<Challenge, "testCases"> {
   testCases: TestCase[];

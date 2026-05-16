@@ -16,7 +16,7 @@ interface ChallengeWithTests extends Omit<Challenge, "testCases"> {
     id: string;
     input: string;
     expectedOutput: string;
-    description?: string;
+    description?: string | null;
     hints?: string[];
   }[];
 }
