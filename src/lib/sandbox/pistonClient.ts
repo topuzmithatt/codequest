@@ -2,7 +2,7 @@
 // CodeQuest — Local Code Execution
 
 import type { Language } from "@prisma/client";
-import { spawn } from "child_process";
+import cp from "child_process";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
@@ -185,7 +185,7 @@ finally:
     let stderr = "";
     let isTimedOut = false;
 
-    const child = spawn(cmd, args, { cwd: TEMP_DIR });
+    const child = cp.spawn(cmd, args, { cwd: TEMP_DIR });
 
     if (stdin && lang !== 'sql') {
       child.stdin.write(stdin);
