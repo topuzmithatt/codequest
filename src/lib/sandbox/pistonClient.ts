@@ -185,7 +185,9 @@ finally:
     let stderr = "";
     let isTimedOut = false;
 
-    const child = cp.spawn(cmd, args, { cwd: TEMP_DIR });
+    const spawnFn = cp.spawn;
+    const childArgs = Array.from(args);
+    const child = spawnFn(cmd, childArgs, { cwd: TEMP_DIR });
 
     if (stdin && lang !== 'sql') {
       child.stdin.write(stdin);
