@@ -1,0 +1,190 @@
+// /src/lib/gamification/engine.ts
+// CodeQuest — Gamification Motoru
+
+import { prisma } from "@/lib/prisma";
+
+const MAX_HEARTS           = 5;
+const HEART_REFILL_MS      = 60 * 60 * 1000;
+const XP_MULTIPLIER_STREAK = 1.5;
+const XP_MULTIPLIER_BASE   = 1.0;
+
+const LEVEL_THRESHOLDS: Record<number, number> = {
+  1:    0,
+  2:  100,
+  3:  250,
+  4:  450,
+  5:  700,
+  6: 1000,
+  7: 1400,
+  8: 1900,
+  9: 2500,
+  10: 3200,
+};
+const MAX_LEVEL = 10;
+
+export interface AwardXPResult {
+  newXp: number;
+  newLevel: number;
+  leveledUp: boolean;
+  badgeAwarded: string | null;
+}
+
+export interface LoseHeartResult {
+  newHearts: number;
+  isBlocked: boolean;
+}
+
+export interface RefillHeartsResult {
+  newHearts:      number;
+  refilledCount:  number;
+  heartsLastFill: Date;   // Modal için eklendi
+}
+
+export interface UpdateStreakResult {
+  currentStreak: number;
+  longestStreak: number;
+  streakBroken: boolean;
+  multiplierReset: boolean;
+}
+
+export interface ProcessSubmissionResult {
+  passed: boolean;
+  xpResult:      AwardXPResult     | null;
+  heartResult:   LoseHeartResult   | null;
+  streakResult:  UpdateStreakResult | null;
+}
+
+function calculateLevel(totalXp: number): number {
+  let level = 1;
+  for (let lvl = MAX_LEVEL; lvl >= 1; lvl--) {
+    if (totalXp >= LEVEL_THRESHOLDS[lvl]) { level = lvl; break; }
+  }
+  return level;
+}
+
+export async function awardXP(userId: string, xpAmount: number): Promise<AwardXPResult> {
+  const user       = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const multiplier = user.xpMultiplier ?? XP_MULTIPLIER_BASE;
+  const earned     = Math.round(xpAmount * multiplier);
+  const newXp      = user.xp + earned;
+  const newWeekly  = user.weeklyXp + earned;
+  const oldLevel   = user.level;
+  const newLevel   = Math.min(MAX_LEVEL, calculateLevel(newXp));
+  const leveledUp  = newLevel > oldLevel;
+
+  await prisma.user.update({ where: { id: userId }, data: { xp: newXp, weeklyXp: newWeekly, level: newLevel } });
+
+  let badgeAwarded: string | null = null;
+  if (leveledUp) {
+    const badge = await prisma.badge.findFirst({ where: { type: "LEVEL", requiredValue: newLevel } });
+    if (badge) {
+      await prisma.userBadge.upsert({
+        where:  { userId_badgeId: { userId, badgeId: badge.id } },
+        create: { userId, badgeId: badge.id },
+        update: {},
+      });
+      badgeAwarded = badge.name;
+    }
+  }
+
+  return { newXp, newLevel, leveledUp, badgeAwarded };
+}
+
+export async function loseHeart(userId: string): Promise<LoseHeartResult> {
+  const user      = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const newHearts = Math.max(0, user.hearts - 1);
+  await prisma.user.update({ where: { id: userId }, data: { hearts: newHearts } });
+  return { newHearts, isBlocked: newHearts === 0 };
+}
+
+export async function refillHearts(userId: string): Promise<RefillHeartsResult> {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+
+  if (user.hearts >= MAX_HEARTS) {
+    return { newHearts: MAX_HEARTS, refilledCount: 0, heartsLastFill: user.heartsLastFill };
+  }
+
+  const now          = Date.now();
+  const lastFill     = new Date(user.heartsLastFill).getTime();
+  const elapsed      = now - lastFill;
+  const hoursElapsed = Math.floor(elapsed / HEART_REFILL_MS);
+
+  if (hoursElapsed === 0) {
+    return { newHearts: user.hearts, refilledCount: 0, heartsLastFill: user.heartsLastFill };
+  }
+
+  const refilledCount = Math.min(hoursElapsed, MAX_HEARTS - user.hearts);
+  const newHearts     = user.hearts + refilledCount;
+  const newLastFill   = new Date(lastFill + refilledCount * HEART_REFILL_MS);
+
+  await prisma.user.update({ where: { id: userId }, data: { hearts: newHearts, heartsLastFill: newLastFill } });
+
+  return { newHearts, refilledCount, heartsLastFill: newLastFill };
+}
+
+export async function updateStreak(userId: string): Promise<UpdateStreakResult> {
+  let streak = await prisma.streak.findUnique({ where: { userId } });
+  if (!streak) {
+    streak = await prisma.streak.create({ data: { userId, currentStreak: 0, longestStreak: 0, isActive: false } });
+  }
+
+  const now   = new Date();
+  const today = toDateOnly(now);
+  const last  = toDateOnly(new Date(streak.lastActivityAt));
+
+  if (streak.isActive && today === last) {
+    return { currentStreak: streak.currentStreak, longestStreak: streak.longestStreak, streakBroken: false, multiplierReset: false };
+  }
+
+  const dayGap       = dateDiffDays(last, today);
+  const streakBroken = dayGap > 1;
+  let newStreak: number;
+  let multiplierReset = false;
+
+  if (streakBroken) {
+    newStreak = 1;
+    multiplierReset = true;
+    await prisma.user.update({ where: { id: userId }, data: { xpMultiplier: XP_MULTIPLIER_BASE } });
+  } else {
+    newStreak = streak.currentStreak + 1;
+    await prisma.user.update({ where: { id: userId }, data: { xpMultiplier: XP_MULTIPLIER_STREAK } });
+  }
+
+  const newLongest = Math.max(streak.longestStreak, newStreak);
+  await prisma.streak.update({
+    where: { userId },
+    data:  { currentStreak: newStreak, longestStreak: newLongest, lastActivityAt: now, isActive: true },
+  });
+
+  return { currentStreak: newStreak, longestStreak: newLongest, streakBroken, multiplierReset };
+}
+
+export async function processSubmission(
+  userId: string,
+  submissionId: string,
+  allPassed: boolean,
+  xpReward: number
+): Promise<ProcessSubmissionResult> {
+  const submission = await prisma.submission.findUniqueOrThrow({ where: { id: submissionId } });
+
+  if (allPassed) {
+    const { xp: xpBefore } = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { xp: true } });
+    const [xpResult, streakResult] = await Promise.all([awardXP(userId, xpReward), updateStreak(userId)]);
+    const xpEarned = xpResult.newXp - xpBefore;
+    await prisma.submission.update({ where: { id: submissionId }, data: { status: "PASSED", xpEarned } });
+    return { passed: true, xpResult, heartResult: null, streakResult };
+  } else {
+    const heartResult = submission.isSandbox ? null : await loseHeart(userId);
+    await prisma.submission.update({ where: { id: submissionId }, data: { status: "FAILED" } });
+    return { passed: false, xpResult: null, heartResult, streakResult: null };
+  }
+}
+
+function toDateOnly(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+function dateDiffDays(from: string, to: string): number {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((new Date(to).getTime() - new Date(from).getTime()) / msPerDay);
+}
