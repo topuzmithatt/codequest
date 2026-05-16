@@ -51,51 +51,53 @@ Projemizin çalışması için `.env` dosyasındaki anahtarlara ihtiyacımız va
 
 ---
 
-## Adım 3: Railway.app Üzerinde Kod Çalıştırma Motorunu (Backend) Kurmak
+## Adım 3: Render.com Üzerinde Kod Çalıştırma Motorunu (Backend) Kurmak
 
-Sistemin "Sandbox" yani kullanıcıların yazdığı kodları derleme işini yapan arka plan sunucusunu kuracağız.
+Sistemin "Sandbox" yani kullanıcıların yazdığı kodları derleme işini yapan arka plan sunucusunu kuracağız. Bu sunucu Docker kullandığı için Render en ideal platformdur.
 
-1. [Railway.app](https://railway.app/)'e girip GitHub hesabınızla bağlantı sağlayın.
-2. Sağ üstten **"New Project"** butonuna tıklayın.
-3. **"Deploy from GitHub repo"** seçeneğine tıklayın.
-4. GitHub'a yüklediğiniz **`codequest`** projenizi seçin.
-5. *"Deploy Now"* demek yerine sağdaki **"Add Variables"** butonuna tıklayın.
-6. Not ettiğiniz `.env` bilgilerini buraya tek tek ekleyin (Şimdilik `NEXT_PUBLIC_SOCKET_URL` eklemeyin).
-7. Panelde projenizin bir blok şeklinde oluştuğunu göreceksiniz. Bu bloğa tıklayın.
-8. Üst menüden **"Settings" (Ayarlar)** sekmesine girin.
-9. Aşağıya kaydırıp **"Deploy"** bölümünü bulun.
-10. **Custom Start Command** kısmına şunu yazın: `node exec-server.js` (Böylece Next.js yerine sadece derleyici sunucumuz çalışır).
-11. Yine Settings sekmesinde **"Networking"** bölümünü bulun ve **"Generate Domain"** butonuna basın.
-12. Railway size `https://codequest-xxxx.up.railway.app` şeklinde bir URL verecektir. **Bu URL'yi kopyalayın.**
+1. [Render.com](https://render.com/)'a girip GitHub hesabınızla kayıt olun.
+2. Sağ üstten **"New"** -> **"Web Service"** seçeneğine tıklayın.
+3. **"Build and deploy from a Git repository"** seçeneğini seçin.
+4. GitHub'a yüklediğiniz **`codequest`** projenizi bağlayın.
+5. Ayarlar ekranında şunları doldurun:
+   - **Name:** `codequest-engine` (veya istediğiniz bir isim)
+   - **Region:** Frankfurt (veya size en yakın olanı)
+   - **Branch:** `main`
+   - **Runtime:** `Docker` (Sistem projedeki Dockerfile'ı otomatik algılar)
+   - **Instance Type:** `Free` (Ücretsiz paket) seçin.
+6. Alt kısımdan **"Advanced"** bölümünü açıp **"Add Environment Variable"** diyerek `.env` dosyanızdaki `GROQ_API_KEY`, `DATABASE_URL` gibi bilgileri ekleyin. (Şimdilik Socket URL eklemeyin).
+7. Eğer **Start Command** sorarsa: `node exec-server.js` yazın. (Sormazsa boş bırakın).
+8. **"Create Web Service"** butonuna basın.
+9. Render kurulumu (Build) yapacak ve bu yaklaşık 3-5 dakika sürecektir. İşlem bitince sayfanın sol üstünde `https://codequest-xxxx.onrender.com` şeklinde bir URL belirecek. **Bu URL'yi kopyalayın.**
 
 ---
 
-## Adım 4: Railway.app Üzerinde Web Arayüzünü (Next.js) Kurmak
+## Adım 4: Vercel Üzerinde Web Arayüzünü (Next.js) Kurmak
 
-Şimdi kullanıcıların göreceği asıl siteyi oluşturacağız. Railway projemizin içindeyken (üst kısımda yeni bir servis ekleyeceğiz):
+Şimdi kullanıcıların göreceği asıl siteyi oluşturacağız. Next.js'in yaratıcısı olan Vercel, arayüz için tamamen ücretsiz ve en hızlı seçenektir.
 
-1. Panelin sağ üstündeki **"+ New"** butonuna tıklayın.
-2. Tekrar **"GitHub Repo"** seçeneğini seçip **aynı projeyi (`codequest`)** bir kez daha ekleyin.
-3. Ekrana ikinci bir kutu (servis) eklenecek. Bu yeni eklenen kutuya tıklayın.
-4. Önceki adımda olduğu gibi **"Variables"** kısmına gelin ve Supabase/Yapay Zeka API şifrelerinizi buraya da ekleyin.
-5. **ÖNEMLİ:** Buraya ekstra olarak yeni bir değişken ekleyin:
-   - **Variable Name:** `NEXT_PUBLIC_SOCKET_URL`
-   - **Value:** Bir önceki adımda (Adım 3) kopyaladığınız Backend URL'sini yapıştırın. (Örn: `https://codequest-xxxx.up.railway.app`)
-6. Üst menüden **"Settings"** sekmesine girin.
-7. **"Deploy"** bölümünde **Custom Start Command** kısmına şunu yazın: `npm run build && next start`
-8. **"Networking"** bölümünde **"Generate Domain"** diyerek asıl sitenizin linkini oluşturun.
+1. [Vercel.com](https://vercel.com/)'a gidip GitHub hesabınızla giriş yapın.
+2. **"Add New"** -> **"Project"** butonuna tıklayın.
+3. Kendi **`codequest`** deponuzu bulun ve **"Import"** butonuna basın.
+4. Çıkan ekranda **"Environment Variables"** bölümünü genişletin.
+5. Supabase bilgileri (`DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, vb.) ve Yapay Zeka API şifrenizi buraya ekleyin.
+6. **ÖNEMLİ:** Buraya ekstra olarak yeni bir değişken ekleyin:
+   - **Key:** `NEXT_PUBLIC_SOCKET_URL`
+   - **Value:** Bir önceki adımda Render'dan kopyaladığınız Backend URL'sini yapıştırın. (Örn: `https://codequest-xxxx.onrender.com`) - *Sonunda eğik çizgi (/) olmamasına dikkat edin.*
+7. **"Deploy"** butonuna basın.
 
 ---
 
 ## Adım 5: Sistem Testi ve Son Kontroller
 
-Her iki servisinizin de yanında yeşil "Tık" (Active) ibaresi belirdiğinde siteniz kullanıma hazırdır. 
+Vercel saniyeler içerisinde projenizi derleyip size bir canlı bağlantı (Örn: `codequest.vercel.app`) sunacaktır.
 
-1. İkinci oluşturduğumuz servisin (Arayüz servisi) ürettiği domain'e (Örn: `codequest-frontend.up.railway.app`) tıklayarak siteye girin.
+1. Vercel'in verdiği linke tıklayarak siteye girin.
 2. Giriş yapın veya yeni kayıt oluşturun.
 3. Öğrenme rotasından herhangi bir göreve girin.
 4. "Çalıştır" butonuna bastığınızda, sağ taraftaki panelde "Çalışıyor..." ibaresini ve ardından sorunsuz şekilde konsol çıktısını (Python, Java fark etmeksizin) görüyorsanız kurulum **tamamen başarılı** demektir!
 
 ### Karşılaşılabilecek Sorunlar ve Çözümleri:
-* **"Terminal çalışmıyor veya hiç çıktı vermiyor":** Railway panelinden ilk kurduğumuz Backend servisinin ayarlarındaki Domain'in doğru oluşturulduğundan ve `NEXT_PUBLIC_SOCKET_URL` değişkenine doğru eklendiğinden emin olun.
-* **"Görevler yüklenmiyor":** Veritabanı URL'lerinizin doğru girilip girilmediğini kontrol edin. Gerekirse Supabase SQL Editörden tablolara veri (seed) eklemesi yapmanız gerekebilir.
+* **"Terminal çalışmıyor veya hiç çıktı vermiyor":** Render'ın ücretsiz sunucuları 15 dakika kullanılmadığında uyku moduna geçer. Siteye ilk girdiğinizde sunucunun uyanması 30-50 saniye sürebilir. İlk çalıştırma denemeniz başarısız olursa 1 dakika bekleyip tekrar deneyin.
+* **"Görevler yüklenmiyor":** Veritabanı URL'lerinizin Vercel tarafına doğru girilip girilmediğini kontrol edin.
+* **Render Build Hatası:** Eğer Render kurulum aşamasında hata verirse, ayarlardan `Start Command` kısmını `node exec-server.js` olarak güncellediğinizden emin olun.
