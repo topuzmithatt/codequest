@@ -5,7 +5,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { runTests } from "@/lib/sandbox/pistonClient";
-import { processSubmission } from "@/lib/gamification/engine";
+import { processSubmission, checkAndAwardBadges } from "@/lib/gamification/engine";
 import { reviewCode } from "@/lib/ai/reviewer";
 import type { Language } from "@prisma/client";
 
@@ -123,6 +123,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const newBadges = await checkAndAwardBadges(user.id);
+
     return NextResponse.json({
       submissionId: submission.id,
       passed:       testRun.allPassed,
@@ -133,6 +135,7 @@ export async function POST(req: NextRequest) {
         xpResult:     gamification.xpResult,
         heartResult:  gamification.heartResult,
         streakResult: gamification.streakResult,
+        newBadges:    newBadges,
       },
       review: review ? {
         overallScore:        review.overallScore,

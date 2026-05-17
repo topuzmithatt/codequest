@@ -520,10 +520,59 @@ async function seedStaticChallenges(existingSet: Set<string>): Promise<number> {
 }
 
 // ─────────────────────────────────────────────
+// Rozetler (Badges) Seed Et
+// ─────────────────────────────────────────────
+async function seedBadges(): Promise<number> {
+  console.log("  → Rozetler (Badges) seed ediliyor…");
+
+  const badges = [
+    // Seviye Rozetleri (LEVEL)
+    { name: "Bronz Programcı", description: "Seviye 2'ye ulaştın! Yolculuk yeni başlıyor.", iconUrl: "🥉", type: "LEVEL" as const, requiredValue: 2 },
+    { name: "Gümüş Kodlayıcı", description: "Seviye 5'e ulaştın! Harika bir ilerleme.", iconUrl: "🥈", type: "LEVEL" as const, requiredValue: 5 },
+    { name: "Efsanevi Yazılımcı", description: "Tebrikler! Seviye 10'a ulaşarak zirveye çıktın.", iconUrl: "🥇", type: "LEVEL" as const, requiredValue: 10 },
+
+    // Görev Rozetleri (CHALLENGE)
+    { name: "İlk Görev Tamamlandı", description: "İlk kodlama görevini başarıyla bitirdin.", iconUrl: "🌟", type: "CHALLENGE" as const, requiredValue: 1 },
+    { name: "5. Görev", description: "5 görev tamamladın, hızlanıyorsun!", iconUrl: "🔥", type: "CHALLENGE" as const, requiredValue: 5 },
+    { name: "10. Görev", description: "10 görev tamamlandı, artık bir ustasın.", iconUrl: "🏆", type: "CHALLENGE" as const, requiredValue: 10 },
+
+    // Seri Rozetleri (STREAK)
+    { name: "3 Gün Üst Üste Giriş", description: "3 günlük streak serisi yakaladın.", iconUrl: "📅", type: "STREAK" as const, requiredValue: 3 },
+    { name: "7 Gün Streak", description: "7 gündür buradasın, harika!", iconUrl: "⚡", type: "STREAK" as const, requiredValue: 7 },
+    { name: "30 Gün Streak", description: "Tam 1 aydır aralıksız kod yazıyorsun.", iconUrl: "👑", type: "STREAK" as const, requiredValue: 30 },
+
+    // Özel Rozetler (SPECIAL)
+    { name: "Gece Kuşu", description: "Gece yarısından sonra (00:00 - 05:00) kod yazıp görevi tamamladın.", iconUrl: "🦉", type: "SPECIAL" as const, requiredValue: 1 },
+    { name: "Kusursuz Kod", description: "Bir görevden kusursuz puan (90+ AI Code Review skoru) aldın.", iconUrl: "✨", type: "SPECIAL" as const, requiredValue: 1 },
+    { name: "Hızlı Çözücü", description: "Bir görevi başarıyla tamamladın.", iconUrl: "🚀", type: "SPECIAL" as const, requiredValue: 1 },
+  ];
+
+  let createdCount = 0;
+  for (const badge of badges) {
+    await db.badge.upsert({
+      where: { name: badge.name },
+      create: badge,
+      update: {
+        description: badge.description,
+        iconUrl: badge.iconUrl,
+        type: badge.type,
+        requiredValue: badge.requiredValue
+      }
+    });
+    createdCount++;
+  }
+
+  return createdCount;
+}
+
+// ─────────────────────────────────────────────
 // Main
 // ─────────────────────────────────────────────
 async function main() {
   console.log("\n🌱 CodeQuest seed başlıyor…\n");
+
+  const badgeCount = await seedBadges();
+  console.log(`\n  ✓ ${badgeCount} rozet seed edildi.\n`);
 
   // Sadece eksik konuları üret — mevcut STATIC sorulara dokunma
   const existingTopics = await db.challenge.findMany({
@@ -543,9 +592,10 @@ async function main() {
 
   console.log("\n────────────────────────────────────");
   console.log("🎉 Seed tamamlandı!");
+  console.log(`   Rozet               : ${badgeCount}`);
   console.log(`   Sandbox placeholder : ${sandboxCount}`);
   console.log(`   Statik challenge    : ${staticCount} / ${expected}`);
-  console.log(`   Toplam              : ${sandboxCount + staticCount}`);
+  console.log(`   Toplam              : ${badgeCount + sandboxCount + staticCount}`);
   console.log("────────────────────────────────────\n");
 }
 

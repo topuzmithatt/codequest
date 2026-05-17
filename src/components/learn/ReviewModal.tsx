@@ -26,6 +26,7 @@ export interface ReviewModalProps {
   passed:     boolean;
   review?:    ReviewData;           // Yalnızca passed=true ise gelir
   xpEarned?:  number;               // Kazanılan XP (opsiyonel, status bar'dan)
+  newBadges?: { name: string; iconUrl: string; description: string }[];
   onClose:    () => void;
 }
 
@@ -120,7 +121,7 @@ function FeedbackBox({
 
 // ─── Ana bileşen ──────────────────────────────────────────────────
 
-export function ReviewModal({ open, passed, review, xpEarned, onClose }: ReviewModalProps) {
+export function ReviewModal({ open, passed, review, xpEarned, newBadges, onClose }: ReviewModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   // Escape tuşu ile kapat
@@ -201,6 +202,40 @@ export function ReviewModal({ open, passed, review, xpEarned, onClose }: ReviewM
           {/* ── PASSED: Review içeriği ──────────────────── */}
           {passed && review ? (
             <>
+              {/* Yeni Kazanılan Rozetler */}
+              {newBadges && newBadges.length > 0 && (
+                <div
+                  className="flex flex-col gap-3 p-3.5 rounded"
+                  style={{
+                    border: "1px solid rgba(234, 179, 8, 0.25)",
+                    background: "rgba(234, 179, 8, 0.04)",
+                  }}
+                >
+                  <div className="flex items-center gap-2 text-yellow-500 font-bold text-xs">
+                    <span>🏆</span> YENİ ROZET KAZANDIN!
+                  </div>
+                  {newBadges.map((badge, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div
+                        className="text-2xl p-2 rounded-lg"
+                        style={{
+                          background: "rgba(234, 179, 8, 0.08)",
+                          border: "1px solid rgba(234, 179, 8, 0.15)",
+                        }}
+                      >
+                        {badge.iconUrl}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-gray-200">{badge.name}</span>
+                        <span className="text-[10px] text-gray-400" style={{ lineHeight: 1.4 }}>
+                          {badge.description}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Genel skor */}
               <div className="flex flex-col items-center gap-1 py-2">
                 <span

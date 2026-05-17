@@ -52,6 +52,7 @@ export function LearnClient({
   const [reviewData, setReviewData] = useState<ReviewData | undefined>(undefined);
   const [submissionPassed, setSubmissionPassed] = useState(false);
   const [xpEarned, setXpEarned] = useState<number | undefined>(undefined);
+  const [newBadges, setNewBadges] = useState<{ name: string; iconUrl: string; description: string }[]>([]);
   const [selectedTestIndex, setSelectedTestIndex] = useState(0);
   const [completedTests, setCompletedTests] = useState<number[]>([]);
   const [currentCode, setCurrentCode] = useState(challenge?.starterCode ?? "");
@@ -134,6 +135,11 @@ export function LearnClient({
     // Hearts azaltma — yanlış cevap gelince UI'ı güncelle
     if (data.gamification?.heartResult != null) {
       setCurrentHearts(data.gamification.heartResult.newHearts);
+    }
+    if (data.gamification?.newBadges) {
+      setNewBadges(data.gamification.newBadges);
+    } else {
+      setNewBadges([]);
     }
     if (data.passed) {
       setCompletedTests((prev) =>
@@ -326,6 +332,7 @@ export function LearnClient({
         passed={submissionPassed}
         review={reviewData}
         xpEarned={xpEarned}
+        newBadges={newBadges}
         onClose={handleReviewClose}
       />
 

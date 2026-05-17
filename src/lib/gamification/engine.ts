@@ -74,20 +74,7 @@ export async function awardXP(userId: string, xpAmount: number): Promise<AwardXP
 
   await prisma.user.update({ where: { id: userId }, data: { xp: newXp, weeklyXp: newWeekly, level: newLevel } });
 
-  let badgeAwarded: string | null = null;
-  if (leveledUp) {
-    const badge = await prisma.badge.findFirst({ where: { type: "LEVEL", requiredValue: newLevel } });
-    if (badge) {
-      await prisma.userBadge.upsert({
-        where:  { userId_badgeId: { userId, badgeId: badge.id } },
-        create: { userId, badgeId: badge.id },
-        update: {},
-      });
-      badgeAwarded = badge.name;
-    }
-  }
-
-  return { newXp, newLevel, leveledUp, badgeAwarded };
+  return { newXp, newLevel, leveledUp, badgeAwarded: null };
 }
 
 export async function loseHeart(userId: string): Promise<LoseHeartResult> {
@@ -187,4 +174,80 @@ function toDateOnly(date: Date): string {
 function dateDiffDays(from: string, to: string): number {
   const msPerDay = 24 * 60 * 60 * 1000;
   return Math.round((new Date(to).getTime() - new Date(from).getTime()) / msPerDay);
+}
+
+export async function checkAndAwardBadges(userId: string): Promise<{ name: string; iconUrl: string; description: string }[]> {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    include: {
+      submissions: {
+        where: { status: "PASSED" },
+        include: { reviewResult: true },
+      },
+      streak: true,
+      badges: true,
+    }
+  });
+
+  const earnedBadgeIds = new Set(user.badges.map(b => b.badgeId));
+  const allBadges = await prisma.badge.findMany();
+  
+  const badgesToAward: string[] = [];
+  const newlyAwardedBadges: { name: string; iconUrl: string; description: string }[] = [];
+
+  for (const badge of allBadges) {
+    if (earnedBadgeIds.has(badge.id)) continue;
+
+    let shouldAward = false;
+
+    if (badge.type === "LEVEL") {
+      shouldAward = user.level >= badge.requiredValue;
+    } else if (badge.type === "CHALLENGE") {
+      const completedCount = user.submissions.length;
+      shouldAward = completedCount >= badge.requiredValue;
+    } else if (badge.type === "STREAK") {
+      const longestStreak = user.streak?.longestStreak ?? 0;
+      shouldAward = longestStreak >= badge.requiredValue;
+    } else if (badge.type === "SPECIAL") {
+      if (badge.name === "Gece Kuşu") {
+        // Night Owl: a passed submission between 00:00 and 05:00 AM
+        shouldAward = user.submissions.some(sub => {
+          const hours = new Date(sub.createdAt).getHours();
+          return hours >= 0 && hours < 5;
+        });
+      } else if (badge.name === "Kusursuz Kod") {
+        // Perfect Code: review result with score >= 90
+        shouldAward = user.submissions.some(sub => {
+          return sub.reviewResult ? sub.reviewResult.overallScore >= 90 : false;
+        });
+      } else if (badge.name === "Hızlı Çözücü") {
+        // Fast Solver: let's award it if they have solved at least 1 challenge successfully
+        shouldAward = user.submissions.length >= 1;
+      }
+    }
+
+    if (shouldAward) {
+      badgesToAward.push(badge.id);
+      newlyAwardedBadges.push({
+        name: badge.name,
+        iconUrl: badge.iconUrl,
+        description: badge.description,
+      });
+    }
+  }
+
+  if (badgesToAward.length > 0) {
+    // Save all to database in a single transaction
+    await prisma.$transaction(
+      badgesToAward.map(badgeId => 
+        prisma.userBadge.upsert({
+          where: { userId_badgeId: { userId, badgeId } },
+          create: { userId, badgeId },
+          update: {},
+        })
+      )
+    );
+  }
+
+  return newlyAwardedBadges;
 }
