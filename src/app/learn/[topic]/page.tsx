@@ -6,6 +6,8 @@ import { LearnClient } from "./LearnClient";
 import { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export async function generateMetadata({ params }: { params: Promise<{ topic: string }> }): Promise<Metadata> {
   const { topic } = await params;

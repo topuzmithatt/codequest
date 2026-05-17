@@ -412,7 +412,12 @@ export function LearnClient({
               Harika iş çıkardın! Şimdi bir sonraki aşamaya geçiyoruz.
             </p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                // Cache-busting query parameter (?t=timestamp) ekleyerek tarayıcı ve CDN cache'lerini tamamen by-pass ederiz
+                const searchParams = new URLSearchParams(window.location.search);
+                searchParams.set("t", Date.now().toString());
+                window.location.href = window.location.pathname + "?" + searchParams.toString();
+              }}
               className="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg text-sm font-bold transition-colors w-full shadow-lg"
             >
               Sıradaki Aşamaya Geç →
