@@ -103,9 +103,12 @@ async function execute(
   // Eğer NEXT_PUBLIC_SOCKET_URL ayarlanmışsa (canlı ortamda Render motorunun adresi)
   // veya Vercel serverless ortamındaysak, uzak Docker sunucumuza istek atarak çalıştırırız.
   // Bu sayede Vercel üzerinde python/javac/node vb. binary bağımlılığı olmadan testler başarıyla çalışır.
-  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+  let socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
   if (socketUrl) {
+    // Sondaki eğik çizgileri (/) temizle ki URL formatı bozulmasın
+    socketUrl = socketUrl.replace(/\/+$/, "");
     try {
+      console.log(`[pistonClient] Remote execution: fetching from ${socketUrl}/execute`);
       const res = await fetch(`${socketUrl}/execute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -284,9 +287,8 @@ export async function runTests(
     throw new Error("En az 1 test case gerekli.");
   }
 
-  const results: TestCaseResult[] = [];
-
-  for (const tc of testCases) {
+  // Vercel'in 10 saniyelik sunucusuz fonksiyon zaman aşımına uğramamak için tüm testleri paralel çalıştırıyoruz.
+  const promises = testCases.map(async (tc) => {
     let actualOutput = "";
     let stderr = "";
 
@@ -300,15 +302,16 @@ export async function runTests(
 
     const passed = outputsMatch(tc.expectedOutput, actualOutput);
 
-    results.push({
+    return {
       input: tc.input,
       expectedOutput: tc.expectedOutput,
       actualOutput: actualOutput.trim(),
       passed,
       stderr,
-    });
-  }
+    };
+  });
 
+  const results = await Promise.all(promises);
   const passedCount = results.filter((r) => r.passed).length;
 
   return {
