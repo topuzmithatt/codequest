@@ -100,6 +100,32 @@ async function execute(
   language: Language,
   stdin?: string
 ): Promise<RunCodeResult> {
+  // Eğer NEXT_PUBLIC_SOCKET_URL ayarlanmışsa (canlı ortamda Render motorunun adresi)
+  // veya Vercel serverless ortamındaysak, uzak Docker sunucumuza istek atarak çalıştırırız.
+  // Bu sayede Vercel üzerinde python/javac/node vb. binary bağımlılığı olmadan testler başarıyla çalışır.
+  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+  if (socketUrl) {
+    try {
+      const res = await fetch(`${socketUrl}/execute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, language, stdin }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          stdout: data.stdout || "",
+          stderr: data.stderr || "",
+          exitCode: data.exitCode ?? 0,
+          timedOut: !!data.timedOut
+        };
+      }
+      console.warn(`Render engine returned status ${res.status}, falling back to local execution`);
+    } catch (err) {
+      console.error("Render engine fetch failed, falling back to local:", err);
+    }
+  }
+
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(TEMP_DIR)) {
       try {
