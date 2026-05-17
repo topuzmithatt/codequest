@@ -30,7 +30,7 @@ export default async function LearnPage({
 
   console.log(`[LearnPage] Triggered for user=${user.id}, topic=${topic}, lpId=${lpId}`);
 
-  let result;
+  let result: Awaited<ReturnType<typeof getChallenge>>;
   try {
     result = await getChallenge(user.id, topic, lpId);
   } catch (err: unknown) {

@@ -28,6 +28,10 @@ const TEST_CASE_SELECT = {
   hints: true,
 };
 
+export interface RedirectResult {
+  redirectTo: string;
+}
+
 export class NoChallengeAvailableError extends Error {
   constructor(public topic: string, public language: string) {
     super(`[getChallenge] ${language} / ${topic} için statik görev bulunamadı.`);
@@ -39,7 +43,7 @@ export async function getChallenge(
   userId: string,
   topic: string,
   lpId?: string
-): Promise<GetChallengeResult> {
+): Promise<GetChallengeResult | RedirectResult> {
   // lpId varsa o spesifik LearningPath'i kullan, yoksa en son olanı al
   let learningPath: LearningPath | null = null;
 
@@ -122,11 +126,11 @@ export async function getChallenge(
       }
       
       console.log(`[getChallenge] Topic completed! Advancing from ${topic} to ${nextTopic} for user ${userId}`);
-      return { redirectTo: `/learn/${nextTopic}?lpId=${learningPath.id}` } as any;
+      return { redirectTo: `/learn/${nextTopic}?lpId=${learningPath.id}` };
     } else {
       // Tüm konular bitmiş! Kullanıcıyı tebrik ekranı için profile yönlendir
       console.log(`[getChallenge] All topics completed for user ${userId}! Redirecting to profile.`);
-      return { redirectTo: `/profile?completedPath=${learningPath.id}` } as any;
+      return { redirectTo: `/profile?completedPath=${learningPath.id}` };
     }
   }
 
