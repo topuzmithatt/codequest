@@ -66,6 +66,8 @@ export async function getChallenge(
     select: { challengeId: true },
   }).then((rows) => rows.map((r) => r.challengeId));
 
+  console.log(`[getChallenge] User=${userId}, Topic=${topic}, Language=${learningPath.language}, CurrentDifficulty=${learningPath.currentDifficulty}, AnsweredIds Count=${answeredIds.length}, AnsweredIds=${JSON.stringify(answeredIds)}`);
+
   // 1. Önce zorluk aralığına uyan statik soruyu dene
   const staticChallenge = await prisma.challenge.findFirst({
     where: {

@@ -27,8 +27,12 @@ export default async function LearnPage({
   const { lpId } = await searchParams;
   const user = await getCurrentUser();
 
+  console.log(`[LearnPage] Triggered for user=${user.id}, topic=${topic}, lpId=${lpId}`);
+
   try {
     const { challenge, learningPath } = await getChallenge(user.id, topic, lpId);
+    
+    console.log(`[LearnPage] Challenge selected successfully: id=${challenge.id}, title=${challenge.title}`);
 
     return (
       <LearnClient
