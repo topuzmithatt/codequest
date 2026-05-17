@@ -62,7 +62,7 @@ export async function getChallenge(
   }
 
   const answeredIds = await prisma.submission.findMany({
-    where: { userId, challenge: { topic } },
+    where: { userId, challenge: { topic }, status: "PASSED" },
     select: { challengeId: true },
   }).then((rows) => rows.map((r) => r.challengeId));
 
@@ -106,7 +106,31 @@ export async function getChallenge(
     return { challenge: fallbackChallenge as ChallengeWithTests, learningPath };
   }
 
-  // 3. Daha önce cevaplananları da dahil et (tekrar göster)
+  // EĞER BURAYA GELİNDİYSE: Kullanıcı bu konudaki tüm statik soruları başarıyla ÇÖZMÜŞTÜR!
+  // Bir sonraki konuya geçişi otomatik tetikleyelim.
+  const topicIndex = learningPath.topicsOrder.indexOf(topic);
+  if (topicIndex !== -1) {
+    if (topicIndex < learningPath.topicsOrder.length - 1) {
+      const nextTopic = learningPath.topicsOrder[topicIndex + 1];
+      
+      // Eğer bitirdiği konu öğrenme yolundaki aktif konuya eşitse index'i ilerlet
+      if (topicIndex === learningPath.currentTopicIndex) {
+        await prisma.learningPath.update({
+          where: { id: learningPath.id },
+          data: { currentTopicIndex: topicIndex + 1 },
+        });
+      }
+      
+      console.log(`[getChallenge] Topic completed! Advancing from ${topic} to ${nextTopic} for user ${userId}`);
+      return { redirectTo: `/learn/${nextTopic}?lpId=${learningPath.id}` } as any;
+    } else {
+      // Tüm konular bitmiş! Kullanıcıyı tebrik ekranı için profile yönlendir
+      console.log(`[getChallenge] All topics completed for user ${userId}! Redirecting to profile.`);
+      return { redirectTo: `/profile?completedPath=${learningPath.id}` } as any;
+    }
+  }
+
+  // 3. Eğer konu topicsOrder içinde değilse (fallback olarak tekrar göster)
   const repeatChallenge = await prisma.challenge.findFirst({
     where: {
       topic,

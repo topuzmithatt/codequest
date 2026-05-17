@@ -2,6 +2,7 @@
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getChallenge } from "@/lib/learn/getChallenge";
 import { LearnClient } from "./LearnClient";
+import { redirect } from "next/navigation";
 
 import { Metadata } from "next";
 
@@ -29,22 +30,9 @@ export default async function LearnPage({
 
   console.log(`[LearnPage] Triggered for user=${user.id}, topic=${topic}, lpId=${lpId}`);
 
+  let result;
   try {
-    const { challenge, learningPath } = await getChallenge(user.id, topic, lpId);
-    
-    console.log(`[LearnPage] Challenge selected successfully: id=${challenge.id}, title=${challenge.title}`);
-
-    return (
-      <LearnClient
-        challenge={challenge}
-        learningPathId={learningPath.id}
-        userId={user.id}
-        hearts={user.hearts}
-        xp={user.xp}
-        level={user.level}
-        streak={0}
-      />
-    );
+    result = await getChallenge(user.id, topic, lpId);
   } catch (err: unknown) {
     const statusCode = (err as { status?: number })?.status;
     const isRateLimit = statusCode === 429;
@@ -96,4 +84,25 @@ export default async function LearnPage({
       </div>
     );
   }
+
+  // Redirect check outside try/catch!
+  if ("redirectTo" in result) {
+    redirect(result.redirectTo);
+  }
+
+  const { challenge, learningPath } = result;
+
+  console.log(`[LearnPage] Challenge selected successfully: id=${challenge.id}, title=${challenge.title}`);
+
+  return (
+    <LearnClient
+      challenge={challenge}
+      learningPathId={learningPath.id}
+      userId={user.id}
+      hearts={user.hearts}
+      xp={user.xp}
+      level={user.level}
+      streak={0}
+    />
+  );
 }
