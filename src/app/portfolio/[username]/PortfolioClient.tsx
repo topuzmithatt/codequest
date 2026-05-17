@@ -3,6 +3,7 @@
 // /src/app/portfolio/[username]/PortfolioClient.tsx
 
 import { useState, useEffect } from "react";
+import { VSCodeLayout } from "@/components/layout/VSCodeLayout";
 
 interface ReviewData {
   overallScore:        number;
@@ -29,6 +30,7 @@ interface PortfolioClientProps {
   owner:       { username: string; level: number };
   submissions: SubmissionData[];
   isOwner:     boolean;
+  viewer:      { id: string; hearts: number; xp: number; level: number; username: string } | null;
 }
 
 function scoreColor(score: number): string {
@@ -91,10 +93,11 @@ function LangBadge({ language }: { language: string }) {
   );
 }
 
-export function PortfolioClient({ owner, submissions: initialSubmissions, isOwner }: PortfolioClientProps) {
+export function PortfolioClient({ owner, submissions: initialSubmissions, isOwner, viewer }: PortfolioClientProps) {
   const [submissions, setSubmissions] = useState(initialSubmissions);
   const [showTour, setShowTour] = useState(false);
   const [isTour, setIsTour] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -137,10 +140,79 @@ export function PortfolioClient({ owner, submissions: initialSubmissions, isOwne
     }
   };
 
+  const handleDelete = async (submissionId: string) => {
+    setDeletingId(submissionId);
+    try {
+      const res = await fetch(`/api/sandbox/portfolio?id=${submissionId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setSubmissions((prev) => prev.filter((s) => s.id !== submissionId));
+      } else {
+        alert("Silme işlemi başarısız oldu.");
+      }
+    } catch {
+      alert("Sunucu hatası.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const publicCount = submissions.filter((s) => s.isPublic).length;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#1e1e1e", color: "#d4d4d4", fontFamily: "'JetBrains Mono', monospace", position: "relative" }}>
+    <div style={{ display: "contents" }}>
+      {viewer ? (
+        <VSCodeLayout
+          userId={viewer.id}
+          hearts={viewer.hearts}
+          xp={viewer.xp}
+          level={viewer.level}
+          streak={0}
+          username={viewer.username}
+        >
+          <PortfolioContent />
+        </VSCodeLayout>
+      ) : (
+        <PortfolioContent />
+      )}
+
+      {/* Silme Onay Modalı */}
+      {deletingId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.65)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setDeletingId(null); }}
+        >
+          <div style={{ background: "#252526", border: "1px solid #3c3c3c", borderRadius: 8, padding: 24, width: 340, fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: 32, marginBottom: 12, textAlign: "center" }}>🗑️</div>
+            <h3 style={{ color: "#e05555", fontSize: 16, fontWeight: 700, marginBottom: 8, textAlign: "center" }}>Portfolyodan Sil</h3>
+            <p style={{ color: "#d4d4d4", fontSize: 12, marginBottom: 20, textAlign: "center", lineHeight: 1.6 }}>
+              Bu kodu portfolyondan silmek istediğine emin misin? Bu işlem geri alınamaz.
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              <button
+                onClick={() => setDeletingId(null)}
+                style={{ padding: "8px 16px", background: "#3c3c3c", border: "1px solid #555", borderRadius: 4, color: "#d4d4d4", fontSize: 12, cursor: "pointer", flex: 1 }}
+              >
+                İptal
+              </button>
+              <button
+                onClick={() => handleDelete(deletingId)}
+                style={{ padding: "8px 16px", background: "#e0555522", border: "1px solid #e0555544", borderRadius: 4, color: "#e05555", fontSize: 12, cursor: "pointer", flex: 1, fontWeight: 700 }}
+              >
+                Evet, Sil
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  function PortfolioContent() {
+    return (
+      <div style={{ height: "100%", overflowY: "auto", background: "#1e1e1e", color: "#d4d4d4", fontFamily: "'JetBrains Mono', monospace", position: "relative" }}>
 
       {/* Portfolyo tur modalı */}
       {showTour && (
@@ -161,21 +233,7 @@ export function PortfolioClient({ owner, submissions: initialSubmissions, isOwne
         </>
       )}
 
-      {/* Başlık çubuğu — geri butonu eklendi */}
-      <div style={{ background: "#007acc", padding: "8px 24px", display: "flex", alignItems: "center", gap: 12 }}>
-        <a
-          href="/profile"
-          title="Profile Dön"
-          style={{ color: "#fff", opacity: 0.85, display: "flex", alignItems: "center", marginRight: 4 }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <polyline points="15 18 9 12 15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </a>
-        <span style={{ fontWeight: 700, fontSize: 13, letterSpacing: "0.12em", color: "#fff" }}>CodeQuest</span>
-        <span style={{ opacity: 0.5, color: "#fff" }}>|</span>
-        <span style={{ fontSize: 12, color: "#fff", opacity: 0.85 }}>Portfolio</span>
-      </div>
+      {/* Başlık çubuğu kaldırıldı çünkü VSCodeLayout içinde var */}
 
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 24px" }}>
 
@@ -239,21 +297,39 @@ export function PortfolioClient({ owner, submissions: initialSubmissions, isOwne
 
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {isOwner && (
-                      <button
-                        onClick={() => handleToggleVisibility(sub.id)}
-                        style={{
-                          display: "flex", alignItems: "center", gap: 6,
-                          padding: "4px 10px", borderRadius: 4, fontSize: 10,
-                          background: sub.isPublic ? "#6a995522" : "#3c3c3c",
-                          color: sub.isPublic ? "#6a9955" : "#858585",
-                          border: `1px solid ${sub.isPublic ? "#6a995544" : "#555"}`,
-                          cursor: "pointer", fontFamily: "inherit", fontWeight: 600,
-                        }}
-                        title={sub.isPublic ? "Herkese açık" : "Sadece sen görebilirsin"}
-                      >
-                        <span>{sub.isPublic ? "🌐" : "🔒"}</span>
-                        <span>{sub.isPublic ? "Public" : "Private"}</span>
-                      </button>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          onClick={() => handleToggleVisibility(sub.id)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 6,
+                            padding: "4px 10px", borderRadius: 4, fontSize: 10,
+                            background: sub.isPublic ? "#6a995522" : "#3c3c3c",
+                            color: sub.isPublic ? "#6a9955" : "#858585",
+                            border: `1px solid ${sub.isPublic ? "#6a995544" : "#555"}`,
+                            cursor: "pointer", fontFamily: "inherit", fontWeight: 600,
+                          }}
+                          title={sub.isPublic ? "Herkese açık" : "Sadece sen görebilirsin"}
+                        >
+                          <span>{sub.isPublic ? "🌐" : "🔒"}</span>
+                          <span>{sub.isPublic ? "Public" : "Private"}</span>
+                        </button>
+                        <button
+                          onClick={() => setDeletingId(sub.id)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 6,
+                            padding: "4px 10px", borderRadius: 4, fontSize: 10,
+                            background: "#e0555522",
+                            color: "#e05555",
+                            border: "1px solid #e0555544",
+                            cursor: "pointer",
+                            fontFamily: "inherit", fontWeight: 600,
+                          }}
+                          title="Portfolyodan Sil"
+                        >
+                          <span>🗑️</span>
+                          <span>Sil</span>
+                        </button>
+                      </div>
                     )}
 
                     {review && (
@@ -334,4 +410,5 @@ export function PortfolioClient({ owner, submissions: initialSubmissions, isOwne
       </div>
     </div>
   );
+}
 }

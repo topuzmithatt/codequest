@@ -57,6 +57,14 @@ export default async function PortfolioPage({ params }: PageProps) {
   // ── Mevcut oturum var mı (public sayfa, redirect yok) ────────
   const currentUserId = await tryGetCurrentUser();
   const isOwner = currentUserId === owner.id;
+  
+  let viewer = null;
+  if (currentUserId) {
+    viewer = await prisma.user.findUnique({
+      where: { id: currentUserId },
+      select: { id: true, hearts: true, xp: true, level: true, username: true }
+    });
+  }
 
   // ── Submission'ları çek ──────────────────────────────────────
   // Owner ise tüm sandbox submission'ları göster (public + private)
@@ -96,6 +104,7 @@ export default async function PortfolioPage({ params }: PageProps) {
           : null,
       }))}
       isOwner={isOwner}
+      viewer={viewer}
     />
   );
 }

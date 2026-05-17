@@ -165,3 +165,49 @@ async function getSandboxChallengeId(language: Language): Promise<string> {
 
   return placeholder.id;
 }
+
+export async function DELETE(req: NextRequest) {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll() } }
+  );
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Yetkisiz erişim." }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "Submission ID gereklidir." }, { status: 400 });
+  }
+
+  try {
+    const submission = await prisma.submission.findUnique({
+      where: { id },
+      select: { userId: true }
+    });
+
+    if (!submission) {
+      return NextResponse.json({ error: "Kayıt bulunamadı." }, { status: 404 });
+    }
+
+    if (submission.userId !== user.id) {
+      return NextResponse.json({ error: "Yetkiniz yok." }, { status: 403 });
+    }
+
+    await prisma.submission.delete({
+      where: { id }
+    });
+
+    return NextResponse.json({ message: "Silme başarılı." }, { status: 200 });
+  } catch (err) {
+    console.error("[DELETE /api/sandbox/portfolio] DB hatası:", err);
+    return NextResponse.json({ error: "Silinemedi." }, { status: 500 });
+  }
+}

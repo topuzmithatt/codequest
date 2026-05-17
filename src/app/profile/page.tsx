@@ -65,7 +65,7 @@ export default async function ProfilePage() {
   const allBadges = await prisma.badge.findMany({ orderBy: { requiredValue: "asc" } });
   const earnedSet = new Set(dbUser.badges.map((ub) => ub.badgeId));
 
-  const badges: BadgeData[] = allBadges.map((badge) => {
+  let badges: BadgeData[] = allBadges.map((badge) => {
     const userBadge = dbUser.badges.find((ub) => ub.badgeId === badge.id);
     return {
       id:          badge.id,
@@ -77,6 +77,26 @@ export default async function ProfilePage() {
         ? new Date(userBadge.earnedAt).toLocaleDateString("tr-TR")
         : undefined,
     };
+  });
+
+  // Mock rozetler (Sunum için)
+  const mockBadges: BadgeData[] = [
+    { id: "mock-1", name: "İlk Görev Tamamlandı", description: "İlk kodlama görevini başarıyla bitirdin.", iconUrl: "🌟", earned: true, earnedAt: "10.05.2026" },
+    { id: "mock-2", name: "5. Görev", description: "5 görev tamamladın, hızlanıyorsun!", iconUrl: "🔥", earned: true, earnedAt: "12.05.2026" },
+    { id: "mock-3", name: "10. Görev", description: "10 görev tamamlandı, artık bir ustasın.", iconUrl: "🏆", earned: false },
+    { id: "mock-4", name: "3 Gün Üst Üste Giriş", description: "3 günlük streak serisi yakaladın.", iconUrl: "📅", earned: true, earnedAt: "15.05.2026" },
+    { id: "mock-5", name: "7 Gün Streak", description: "7 gündür buradasın, harika!", iconUrl: "⚡", earned: false },
+    { id: "mock-6", name: "30 Gün Streak", description: "Tam 1 aydır aralıksız kod yazıyorsun.", iconUrl: "👑", earned: false },
+    { id: "mock-7", name: "Gece Kuşu", description: "Gece yarısından sonra kod yazanlar için.", iconUrl: "🦉", earned: true, earnedAt: "14.05.2026" },
+    { id: "mock-8", name: "Kusursuz Kod", description: "Hiç hata almadan testi geçenler için.", iconUrl: "✨", earned: true, earnedAt: "11.05.2026" },
+    { id: "mock-9", name: "Hızlı Çözücü", description: "Görevi 5 dakikadan kısa sürede bitirenler için.", iconUrl: "🚀", earned: false },
+  ];
+
+  // Eğer gerçek veritabanında bu isimlerde rozet yoksa mockları ekle
+  mockBadges.forEach(mockBadge => {
+    if (!badges.find(b => b.name === mockBadge.name)) {
+      badges.push(mockBadge);
+    }
   });
 
   const leaderboard: LeaderboardEntry[] = topUsers.map((u, i) => ({

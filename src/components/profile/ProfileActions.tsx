@@ -5,13 +5,23 @@
 
 import { useState } from "react";
 import { AddLanguageModal } from "./AddLanguageModal";
+import { createBrowserClient } from "@supabase/ssr";
 
 export function ProfileActions({ portfolioUrl }: { portfolioUrl: string }) {
   const [modalOpen, setModalOpen] = useState(false);
 
+  const handleLogout = async () => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
   return (
     <>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
         <a
           href={portfolioUrl}
           style={{
@@ -56,6 +66,22 @@ export function ProfileActions({ portfolioUrl }: { portfolioUrl: string }) {
           }}
         >
           + Yeni Dil Ekle
+        </button>
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: "6px 16px",
+            background: "#e0555522",
+            border: "1px solid #e0555544",
+            borderRadius: 4,
+            color: "#e05555",
+            fontSize: 12,
+            fontFamily: "'JetBrains Mono', monospace",
+            cursor: "pointer",
+            marginLeft: "auto", // Sağ tarafa yaslanması için
+          }}
+        >
+          Çıkış Yap
         </button>
       </div>
 

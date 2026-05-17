@@ -226,13 +226,19 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
       }}
       title={badge.earned ? `${badge.name} — ${badge.earnedAt ?? ""}` : `${badge.name} (kilitli)`}
     >
-      {/* İkon — URL varsa img, yoksa baş harf fallback */}
+      {/* İkon — URL varsa img, emoji ise metin, yoksa baş harf fallback */}
       {badge.iconUrl ? (
-        <img
-          src={badge.iconUrl}
-          alt={badge.name}
-          style={{ width: 32, height: 32, objectFit: "contain" }}
-        />
+        badge.iconUrl.startsWith("/") || badge.iconUrl.startsWith("http") ? (
+          <img
+            src={badge.iconUrl}
+            alt={badge.name}
+            style={{ width: 32, height: 32, objectFit: "contain" }}
+          />
+        ) : (
+          <div style={{ fontSize: 24, lineHeight: "32px", height: 32 }}>
+            {badge.iconUrl}
+          </div>
+        )
       ) : (
         <div
           className="flex items-center justify-center rounded-full font-bold"

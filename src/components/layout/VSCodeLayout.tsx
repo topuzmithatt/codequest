@@ -301,9 +301,8 @@ export function VSCodeLayout({
     onTabChange?.(id);
   };
 
-  // Profile/edit ve portfolio sayfalarında geri butonu göster
-  const showBack = pathname.startsWith("/profile/edit") ||
-    pathname.startsWith("/portfolio");
+  // Profile/edit sayfasında geri butonu göster
+  const showBack = pathname.startsWith("/profile/edit");
 
   return (
     <div
