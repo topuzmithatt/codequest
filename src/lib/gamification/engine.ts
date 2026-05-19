@@ -229,6 +229,29 @@ export async function checkAndAwardBadges(userId: string): Promise<{ name: strin
       } else if (badge.name === "Hızlı Çözücü") {
         // Fast Solver: let's award it if they have solved at least 1 challenge successfully
         shouldAward = user.submissions.length >= 1;
+      } else if (badge.name === "Meraklı Zihin") {
+        // Sandbox Mind: solved at least 1 sandbox challenge
+        shouldAward = user.submissions.some(sub => sub.isSandbox);
+      } else if (badge.name === "Erken Kalkan Yol Alır") {
+        // Early Bird: passed submission between 05:00 and 08:00 AM
+        shouldAward = user.submissions.some(sub => {
+          const hours = new Date(sub.createdAt).getHours();
+          return hours >= 5 && hours < 8;
+        });
+      } else if (badge.name === "Çok Yönlü") {
+        // Polyglot: solved challenges in at least 2 distinct languages
+        const languages = new Set(user.submissions.map(sub => sub.language));
+        shouldAward = languages.size >= 2;
+      } else if (badge.name === "Dil Uzmanı") {
+        // Language Expert: solved challenges in at least 3 distinct languages
+        const languages = new Set(user.submissions.map(sub => sub.language));
+        shouldAward = languages.size >= 3;
+      } else if (badge.name === "Hata Avcısı") {
+        // Bug Hunter: at least 5 submissions with review score >= 90
+        const perfectSubs = user.submissions.filter(sub => 
+          sub.reviewResult ? sub.reviewResult.overallScore >= 90 : false
+        );
+        shouldAward = perfectSubs.length >= 5;
       }
     }
 

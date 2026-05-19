@@ -408,10 +408,39 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
   );
 }
 
+export function getBadgeDifficulty(name: string): number {
+  const order: Record<string, number> = {
+    "İlk Görev Tamamlandı": 1,
+    "Hızlı Çözücü": 2,
+    "Bronz Programcı": 3,
+    "3 Gün Üst Üste Giriş": 4,
+    "Meraklı Zihin": 5,
+    "Erken Kalkan Yol Alır": 6,
+    "5. Görev": 7,
+    "Seviye Üç": 8,
+    "7 Gün Streak": 9,
+    "Çok Yönlü": 10,
+    "Gümüş Kodlayıcı": 11,
+    "10. Görev": 12,
+    "Gece Kuşu": 13,
+    "15. Görev": 14,
+    "Kod Ustası": 15,
+    "İki Hafta Kesintisiz": 16,
+    "Kusursuz Kod": 17,
+    "25. Görev": 18,
+    "30 Gün Streak": 19,
+    "Dil Uzmanı": 20,
+    "Efsanevi Yazılımcı": 21,
+    "50. Görev": 22,
+    "Hata Avcısı": 23,
+    "Yenilmez": 24,
+  };
+  return order[name] ?? 999;
+}
+
 export function BadgeShelf({ badges }: { badges: BadgeData[] }) {
   const earned   = badges.filter((b) => b.earned);
-  const locked   = badges.filter((b) => !b.earned);
-  const ordered  = [...earned, ...locked];
+  const ordered  = [...badges].sort((a, b) => getBadgeDifficulty(a.name) - getBadgeDifficulty(b.name));
 
   return (
     <div

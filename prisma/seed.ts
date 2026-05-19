@@ -526,25 +526,54 @@ async function seedBadges(): Promise<number> {
   console.log("  → Rozetler (Badges) seed ediliyor…");
 
   const badges = [
-    // Seviye Rozetleri (LEVEL)
-    { name: "Bronz Programcı", description: "Seviye 2'ye ulaştın! Yolculuk yeni başlıyor.", iconUrl: "🥉", type: "LEVEL" as const, requiredValue: 2 },
-    { name: "Gümüş Kodlayıcı", description: "Seviye 5'e ulaştın! Harika bir ilerleme.", iconUrl: "🥈", type: "LEVEL" as const, requiredValue: 5 },
-    { name: "Efsanevi Yazılımcı", description: "Tebrikler! Seviye 10'a ulaşarak zirveye çıktın.", iconUrl: "🥇", type: "LEVEL" as const, requiredValue: 10 },
-
-    // Görev Rozetleri (CHALLENGE)
+    // 1. İlk Görev Tamamlandı
     { name: "İlk Görev Tamamlandı", description: "İlk kodlama görevini başarıyla bitirdin.", iconUrl: "🌟", type: "CHALLENGE" as const, requiredValue: 1 },
-    { name: "5. Görev", description: "5 görev tamamladın, hızlanıyorsun!", iconUrl: "🔥", type: "CHALLENGE" as const, requiredValue: 5 },
-    { name: "10. Görev", description: "10 görev tamamlandı, artık bir ustasın.", iconUrl: "🏆", type: "CHALLENGE" as const, requiredValue: 10 },
-
-    // Seri Rozetleri (STREAK)
-    { name: "3 Gün Üst Üste Giriş", description: "3 günlük streak serisi yakaladın.", iconUrl: "📅", type: "STREAK" as const, requiredValue: 3 },
-    { name: "7 Gün Streak", description: "7 gündür buradasın, harika!", iconUrl: "⚡", type: "STREAK" as const, requiredValue: 7 },
-    { name: "30 Gün Streak", description: "Tam 1 aydır aralıksız kod yazıyorsun.", iconUrl: "👑", type: "STREAK" as const, requiredValue: 30 },
-
-    // Özel Rozetler (SPECIAL)
-    { name: "Gece Kuşu", description: "Gece yarısından sonra (00:00 - 05:00) kod yazıp görevi tamamladın.", iconUrl: "🦉", type: "SPECIAL" as const, requiredValue: 1 },
-    { name: "Kusursuz Kod", description: "Bir görevden kusursuz puan (90+ AI Code Review skoru) aldın.", iconUrl: "✨", type: "SPECIAL" as const, requiredValue: 1 },
+    // 2. Hızlı Çözücü
     { name: "Hızlı Çözücü", description: "Bir görevi başarıyla tamamladın.", iconUrl: "🚀", type: "SPECIAL" as const, requiredValue: 1 },
+    // 3. Bronz Programcı
+    { name: "Bronz Programcı", description: "Seviye 2'ye ulaştın! Yolculuk yeni başlıyor.", iconUrl: "🥉", type: "LEVEL" as const, requiredValue: 2 },
+    // 4. 3 Gün Üst Üste Giriş
+    { name: "3 Gün Üst Üste Giriş", description: "3 günlük streak serisi yakaladın.", iconUrl: "📅", type: "STREAK" as const, requiredValue: 3 },
+    // 5. Meraklı Zihin
+    { name: "Meraklı Zihin", description: "Sandbox (Deneme Alanı) modunda ilk kodunu çalıştırdın.", iconUrl: "💡", type: "SPECIAL" as const, requiredValue: 1 },
+    // 6. Erken Kalkan Yol Alır
+    { name: "Erken Kalkan Yol Alır", description: "Sabahın erken saatlerinde (05:00 - 08:00) bir görevi başarıyla tamamladın.", iconUrl: "🌅", type: "SPECIAL" as const, requiredValue: 1 },
+    // 7. 5. Görev
+    { name: "5. Görev", description: "5 görev tamamladın, hızlanıyorsun!", iconUrl: "🔥", type: "CHALLENGE" as const, requiredValue: 5 },
+    // 8. Seviye Üç
+    { name: "Seviye Üç", description: "Seviye 3'e ulaştın! Kendini geliştiriyorsun.", iconUrl: "✨", type: "LEVEL" as const, requiredValue: 3 },
+    // 9. 7 Gün Streak
+    { name: "7 Gün Streak", description: "7 gündür buradasın, harika!", iconUrl: "⚡", type: "STREAK" as const, requiredValue: 7 },
+    // 10. Çok Yönlü
+    { name: "Çok Yönlü", description: "İki farklı programlama dilinde görev tamamladın.", iconUrl: "🗣️", type: "SPECIAL" as const, requiredValue: 2 },
+    // 11. Gümüş Kodlayıcı
+    { name: "Gümüş Kodlayıcı", description: "Seviye 5'e ulaştın! Harika bir ilerleme.", iconUrl: "🥈", type: "LEVEL" as const, requiredValue: 5 },
+    // 12. 10. Görev
+    { name: "10. Görev", description: "10 görev tamamlandı, artık bir ustasın.", iconUrl: "🏆", type: "CHALLENGE" as const, requiredValue: 10 },
+    // 13. Gece Kuşu
+    { name: "Gece Kuşu", description: "Gece yarısından sonra (00:00 - 05:00) kod yazıp görevi tamamladın.", iconUrl: "🦉", type: "SPECIAL" as const, requiredValue: 1 },
+    // 14. 15. Görev
+    { name: "15. Görev", description: "15 görev başarıyla tamamlandı.", iconUrl: "🌟", type: "CHALLENGE" as const, requiredValue: 15 },
+    // 15. Kod Ustası
+    { name: "Kod Ustası", description: "Seviye 7'ye ulaştın! Kod yazmak senin için çocuk oyuncağı.", iconUrl: "💫", type: "LEVEL" as const, requiredValue: 7 },
+    // 16. İki Hafta Kesintisiz
+    { name: "İki Hafta Kesintisiz", description: "14 günlük streak serisi yakaladın.", iconUrl: "🗓️", type: "STREAK" as const, requiredValue: 14 },
+    // 17. Kusursuz Kod
+    { name: "Kusursuz Kod", description: "Bir görevden kusursuz puan (90+ AI Code Review skoru) aldın.", iconUrl: "✨", type: "SPECIAL" as const, requiredValue: 1 },
+    // 18. 25. Görev
+    { name: "25. Görev", description: "25 görev tamamlandı, durdurulamazsın!", iconUrl: "⚔️", type: "CHALLENGE" as const, requiredValue: 25 },
+    // 19. 30 Gün Streak
+    { name: "30 Gün Streak", description: "Tam 1 aydır aralıksız kod yazıyorsun.", iconUrl: "👑", type: "STREAK" as const, requiredValue: 30 },
+    // 20. Dil Uzmanı
+    { name: "Dil Uzmanı", description: "Üç farklı programlama dilinde görev tamamladın.", iconUrl: "🎯", type: "SPECIAL" as const, requiredValue: 3 },
+    // 21. Efsanevi Yazılımcı
+    { name: "Efsanevi Yazılımcı", description: "Tebrikler! Seviye 10'a ulaşarak zirveye çıktın.", iconUrl: "🥇", type: "LEVEL" as const, requiredValue: 10 },
+    // 22. 50. Görev
+    { name: "50. Görev", description: "50 görev tamamlandı, büyük başarı!", iconUrl: "🛡️", type: "CHALLENGE" as const, requiredValue: 50 },
+    // 23. Hata Avcısı
+    { name: "Hata Avcısı", description: "5 farklı görevi tek seferde kusursuz (90+ AI Code Review skoru) tamamladın.", iconUrl: "🐛", type: "SPECIAL" as const, requiredValue: 5 },
+    // 24. Yenilmez
+    { name: "Yenilmez", description: "50 günlük streak serisi yakaladın!", iconUrl: "🛡️", type: "STREAK" as const, requiredValue: 50 }
   ];
 
   let createdCount = 0;

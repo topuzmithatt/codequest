@@ -4,6 +4,7 @@
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { prisma }         from "@/lib/prisma";
 import { VSCodeLayout }   from "@/components/layout/VSCodeLayout";
+import { checkAndAwardBadges } from "@/lib/gamification/engine";
 import {
   ProfileHeader,
   StatsGrid,
@@ -23,6 +24,9 @@ export const metadata = {
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
+  
+  // Önce yeni veya hak kazanılmış rozetleri kontrol et ve veritabanına ekle
+  await checkAndAwardBadges(user.id);
 
   const dbUser = await prisma.user.findUniqueOrThrow({
     where: { id: user.id },
