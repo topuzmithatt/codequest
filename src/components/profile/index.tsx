@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // ─── Tipler ──────────────────────────────────────────────────────
 
@@ -218,9 +218,75 @@ export function StatsGrid({ stats }: { stats: ProfileStats }) {
 
 function BadgeCard({ badge }: { badge: BadgeData }) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({
+    bottom: "115%",
+    left: "50%",
+    transform: "translateX(-50%)",
+  });
+  const [arrowStyle, setArrowStyle] = useState<React.CSSProperties>({
+    left: "50%",
+    transform: "translateX(-50%) rotate(45deg)",
+  });
+  
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = () => {
+    if (cardRef.current) {
+      const cardRect = cardRef.current.getBoundingClientRect();
+      const tooltipWidth = 220;
+      const sidebarWidth = 48;
+      const minLeft = sidebarWidth + 8; // 48px sidebar + 8px safety gap
+      const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1024;
+      const maxRight = viewportWidth - 8; // 8px safety gap from right edge
+      
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      const expectedLeft = cardCenter - tooltipWidth / 2;
+      const expectedRight = cardCenter + tooltipWidth / 2;
+      
+      if (expectedLeft < minLeft) {
+        const shiftAmount = minLeft - expectedLeft;
+        setTooltipStyle({
+          bottom: "115%",
+          left: `calc(50% + ${shiftAmount}px)`,
+          transform: "translateX(-50%)",
+        });
+        setArrowStyle({
+          left: `calc(50% - ${shiftAmount}px)`,
+          transform: "translateX(-50%) rotate(45deg)",
+        });
+      } else if (expectedRight > maxRight) {
+        const shiftAmount = expectedRight - maxRight;
+        setTooltipStyle({
+          bottom: "115%",
+          left: `calc(50% - ${shiftAmount}px)`,
+          transform: "translateX(-50%)",
+        });
+        setArrowStyle({
+          left: `calc(50% + ${shiftAmount}px)`,
+          transform: "translateX(-50%) rotate(45deg)",
+        });
+      } else {
+        setTooltipStyle({
+          bottom: "115%",
+          left: "50%",
+          transform: "translateX(-50%)",
+        });
+        setArrowStyle({
+          left: "50%",
+          transform: "translateX(-50%) rotate(45deg)",
+        });
+      }
+    }
+    setShowTooltip(true);
+  };
+
+  const handleMouseLeave = () => {
+    setShowTooltip(false);
+  };
 
   return (
     <div
+      ref={cardRef}
       className="relative flex flex-col items-center gap-2 px-3 py-3 rounded-lg text-center transition-all duration-300"
       style={{
         background: "#252526",
@@ -228,8 +294,8 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
         minWidth:   72,
         cursor:     "pointer",
       }}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Badge contents (Icon & Text) with opacity if not earned */}
       <div 
@@ -288,9 +354,7 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
         <div
           className="absolute z-50 flex flex-col gap-2 p-3 text-left rounded-lg pointer-events-none transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
           style={{
-            bottom: "115%",
-            left: "50%",
-            transform: "translateX(-50%)",
+            ...tooltipStyle,
             width: "220px",
             background: "rgba(30, 30, 30, 0.95)",
             backdropFilter: "blur(12px)",
@@ -330,8 +394,7 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
             style={{
               position: "absolute",
               bottom: "-5px",
-              left: "50%",
-              transform: "translateX(-50%) rotate(45deg)",
+              ...arrowStyle,
               width: "10px",
               height: "10px",
               background: "rgba(30, 30, 30, 0.95)",
