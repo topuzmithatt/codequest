@@ -285,7 +285,7 @@ export function VSCodeLayout({
     };
 
     fetchHearts();
-    const interval = setInterval(fetchHearts, 10_000); // 10 saniyede bir kontrol
+    const interval = setInterval(fetchHearts, 30_000); // 30 saniyede bir kontrol (veritabanını korumak için)
     return () => clearInterval(interval);
   }, [userId]);
 

@@ -4,11 +4,20 @@
 
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+  // Vercel serverless ortamında bağlantı sınırlarını aşmamak için production'da maksimum 1 connection açar.
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL!,
+    max: process.env.NODE_ENV === "production" ? 1 : 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  });
+
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
