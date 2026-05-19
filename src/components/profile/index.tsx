@@ -287,19 +287,21 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
   return (
     <div
       ref={cardRef}
-      className="relative flex flex-col items-center gap-2 px-3 py-3 rounded-lg text-center transition-all duration-300"
+      className="relative flex flex-col items-center gap-2 p-2 rounded-lg text-center transition-all duration-300"
       style={{
         background: "#252526",
         border:     `1px solid ${badge.earned ? "#3c3c3c" : "#2a2a2a"}`,
-        minWidth:   72,
+        width:      "100%",
+        height:     "80px",
+        display:    "flex",
+        justifyContent: "center",
         cursor:     "pointer",
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Badge contents (Icon & Text) with opacity if not earned */}
       <div 
-        className="flex flex-col items-center gap-2"
+        className="flex flex-col items-center gap-1.5 w-full"
         style={{
           opacity: badge.earned ? 1 : 0.4,
           transition: "opacity 0.2s ease",
@@ -311,10 +313,10 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
             <img
               src={badge.iconUrl}
               alt={badge.name}
-              style={{ width: 32, height: 32, objectFit: "contain" }}
+              style={{ width: 28, height: 28, objectFit: "contain" }}
             />
           ) : (
-            <div style={{ fontSize: 24, lineHeight: "32px", height: 32 }}>
+            <div style={{ fontSize: 22, lineHeight: "28px", height: 28 }}>
               {badge.iconUrl}
             </div>
           )
@@ -322,10 +324,10 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
           <div
             className="flex items-center justify-center rounded-full font-bold"
             style={{
-              width: 32, height: 32,
+              width: 28, height: 28,
               background: badge.earned ? "#007acc22" : "#3c3c3c",
               color:      badge.earned ? "#007acc"   : "#555",
-              fontSize:   14,
+              fontSize:   12,
               fontFamily: "'JetBrains Mono', monospace",
             }}
           >
@@ -333,12 +335,11 @@ function BadgeCard({ badge }: { badge: BadgeData }) {
           </div>
         )}
         <span
-          className="text-center leading-tight"
+          className="text-center leading-tight w-full px-1"
           style={{
             color:      badge.earned ? "#d4d4d4" : "#858585",
-            fontSize:   9,
+            fontSize:   8,
             fontFamily: "'JetBrains Mono', monospace",
-            maxWidth:   64,
             overflow:   "hidden",
             display:    "-webkit-box",
             WebkitLineClamp: 2,
@@ -462,7 +463,7 @@ export function BadgeShelf({ badges }: { badges: BadgeData[] }) {
           Henüz rozet yok.
         </p>
       ) : (
-        <div className="flex flex-wrap gap-3">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: "8px" }}>
           {ordered.map((badge) => (
             <BadgeCard key={badge.id} badge={badge} />
           ))}
