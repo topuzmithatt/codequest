@@ -27,6 +27,22 @@ export async function POST(req: NextRequest) {
     const isAnon = !user.email;
     const userEmail = user.email || `anon_${user.id}@codequest.app`;
 
+    // E-posta adresiyle önceden eşleşen ama ID'si farklı (örn. eski veritabanından taşınmış) bir kullanıcı var mı kontrol et:
+    if (!isAnon) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: userEmail },
+      });
+      
+      if (existingUser && existingUser.id !== user.id) {
+        // ID'leri eşitlemek için PostgreSQL'deki ON UPDATE CASCADE özelliğini kullanıp ID'yi güncelle:
+        await prisma.$executeRawUnsafe(
+          'UPDATE public.users SET id = $1 WHERE email = $2',
+          user.id,
+          userEmail
+        );
+      }
+    }
+
     await prisma.user.upsert({
       where:  { id: user.id },
       update: {
