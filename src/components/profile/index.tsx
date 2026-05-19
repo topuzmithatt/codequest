@@ -4,6 +4,8 @@
 
 "use client";
 
+import { useState } from "react";
+
 // ─── Tipler ──────────────────────────────────────────────────────
 
 export interface ProfileUser {
@@ -215,59 +217,130 @@ export function StatsGrid({ stats }: { stats: ProfileStats }) {
 // ─────────────────────────────────────────────
 
 function BadgeCard({ badge }: { badge: BadgeData }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
   return (
     <div
-      className="flex flex-col items-center gap-2 px-3 py-3 rounded-lg text-center transition-opacity"
+      className="relative flex flex-col items-center gap-2 px-3 py-3 rounded-lg text-center transition-all duration-300"
       style={{
         background: "#252526",
         border:     `1px solid ${badge.earned ? "#3c3c3c" : "#2a2a2a"}`,
-        opacity:    badge.earned ? 1 : 0.3,
         minWidth:   72,
+        cursor:     "pointer",
       }}
-      title={badge.earned ? `${badge.name} — ${badge.earnedAt ?? ""}` : `${badge.name} (kilitli)`}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
     >
-      {/* İkon — URL varsa img, emoji ise metin, yoksa baş harf fallback */}
-      {badge.iconUrl ? (
-        badge.iconUrl.startsWith("/") || badge.iconUrl.startsWith("http") ? (
-          <img
-            src={badge.iconUrl}
-            alt={badge.name}
-            style={{ width: 32, height: 32, objectFit: "contain" }}
-          />
+      {/* Badge contents (Icon & Text) with opacity if not earned */}
+      <div 
+        className="flex flex-col items-center gap-2"
+        style={{
+          opacity: badge.earned ? 1 : 0.4,
+          transition: "opacity 0.2s ease",
+        }}
+      >
+        {/* İkon — URL varsa img, emoji ise metin, yoksa baş harf fallback */}
+        {badge.iconUrl ? (
+          badge.iconUrl.startsWith("/") || badge.iconUrl.startsWith("http") ? (
+            <img
+              src={badge.iconUrl}
+              alt={badge.name}
+              style={{ width: 32, height: 32, objectFit: "contain" }}
+            />
+          ) : (
+            <div style={{ fontSize: 24, lineHeight: "32px", height: 32 }}>
+              {badge.iconUrl}
+            </div>
+          )
         ) : (
-          <div style={{ fontSize: 24, lineHeight: "32px", height: 32 }}>
-            {badge.iconUrl}
+          <div
+            className="flex items-center justify-center rounded-full font-bold"
+            style={{
+              width: 32, height: 32,
+              background: badge.earned ? "#007acc22" : "#3c3c3c",
+              color:      badge.earned ? "#007acc"   : "#555",
+              fontSize:   14,
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
+            {badge.name.charAt(0)}
           </div>
-        )
-      ) : (
-        <div
-          className="flex items-center justify-center rounded-full font-bold"
+        )}
+        <span
+          className="text-center leading-tight"
           style={{
-            width: 32, height: 32,
-            background: badge.earned ? "#007acc22" : "#3c3c3c",
-            color:      badge.earned ? "#007acc"   : "#555",
-            fontSize:   14,
+            color:      badge.earned ? "#d4d4d4" : "#858585",
+            fontSize:   9,
+            fontFamily: "'JetBrains Mono', monospace",
+            maxWidth:   64,
+            overflow:   "hidden",
+            display:    "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical" as const,
+          }}
+        >
+          {badge.name}
+        </span>
+      </div>
+
+      {/* Dynamic, visually stunning premium Tooltip */}
+      {showTooltip && (
+        <div
+          className="absolute z-50 flex flex-col gap-2 p-3 text-left rounded-lg pointer-events-none transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
+          style={{
+            bottom: "115%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "220px",
+            background: "rgba(30, 30, 30, 0.95)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid #3c3c3c",
+            borderRadius: "8px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6)",
             fontFamily: "'JetBrains Mono', monospace",
           }}
         >
-          {badge.name.charAt(0)}
+          {/* Header with badge icon and name */}
+          <div className="flex items-center gap-2 pb-1.5" style={{ borderBottom: "1px solid #3c3c3c" }}>
+            <span style={{ fontSize: 16 }}>{badge.iconUrl && !badge.iconUrl.startsWith("/") && !badge.iconUrl.startsWith("http") ? badge.iconUrl : "🏆"}</span>
+            <span style={{ color: "#d4d4d4", fontSize: 11, fontWeight: "bold" }}>
+              {badge.name}
+            </span>
+          </div>
+
+          {/* Description */}
+          <div style={{ color: "#a0a0a0", fontSize: 10, lineHeight: 1.4 }}>
+            {badge.description}
+          </div>
+
+          {/* Earning Status & Date */}
+          <div className="flex items-center gap-1.5 mt-1 pt-1.5" style={{ borderTop: "1px solid #2d2d2d" }}>
+            {badge.earned ? (
+              <>
+                <span style={{ color: "#6a9955", fontSize: 9, fontWeight: "bold" }}>✓ Kazanıldı</span>
+                <span style={{ color: "#858585", fontSize: 9 }}>· {badge.earnedAt}</span>
+              </>
+            ) : (
+              <span style={{ color: "#e05555", fontSize: 9, fontWeight: "bold" }}>🔒 Kilitli</span>
+            )}
+          </div>
+
+          {/* Tooltip arrow */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "-5px",
+              left: "50%",
+              transform: "translateX(-50%) rotate(45deg)",
+              width: "10px",
+              height: "10px",
+              background: "rgba(30, 30, 30, 0.95)",
+              borderRight: "1px solid #3c3c3c",
+              borderBottom: "1px solid #3c3c3c",
+            }}
+          />
         </div>
       )}
-      <span
-        className="text-center leading-tight"
-        style={{
-          color:      badge.earned ? "#d4d4d4" : "#555",
-          fontSize:   9,
-          fontFamily: "'JetBrains Mono', monospace",
-          maxWidth:   64,
-          overflow:   "hidden",
-          display:    "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical" as const,
-        }}
-      >
-        {badge.name}
-      </span>
     </div>
   );
 }
