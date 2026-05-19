@@ -266,7 +266,7 @@ export function VSCodeLayout({
 
     const fetchHearts = async () => {
       try {
-        const res = await fetch("/api/hearts");
+        const res = await fetch(`/api/hearts?t=${Date.now()}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           setHearts(data.hearts);

@@ -7,6 +7,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import type { User } from "@prisma/client";
+import { refillHearts } from "@/lib/gamification/engine";
 
 /**
  * Server Component veya Server Action içinde çağrılır.
@@ -48,6 +49,11 @@ export async function getCurrentUser(): Promise<User> {
   if (!dbUser) {
     redirect("/login");
   }
+
+  // Canları otomatik refill et ve güncel veriyi al
+  const refillResult = await refillHearts(dbUser.id);
+  dbUser.hearts = refillResult.newHearts;
+  dbUser.heartsLastFill = refillResult.heartsLastFill;
 
   return dbUser;
 }

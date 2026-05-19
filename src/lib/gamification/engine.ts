@@ -80,7 +80,13 @@ export async function awardXP(userId: string, xpAmount: number): Promise<AwardXP
 export async function loseHeart(userId: string): Promise<LoseHeartResult> {
   const user      = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   const newHearts = Math.max(0, user.hearts - 1);
-  await prisma.user.update({ where: { id: userId }, data: { hearts: newHearts } });
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      hearts: newHearts,
+      ...(user.hearts === MAX_HEARTS ? { heartsLastFill: new Date() } : {}),
+    },
+  });
   return { newHearts, isBlocked: newHearts === 0 };
 }
 
@@ -94,7 +100,7 @@ export async function refillHearts(userId: string): Promise<RefillHeartsResult> 
   const now          = Date.now();
   const lastFill     = new Date(user.heartsLastFill).getTime();
   const elapsed      = now - lastFill;
-  const hoursElapsed = Math.floor(elapsed / HEART_REFILL_MS);
+  const hoursElapsed = Math.max(0, Math.floor(elapsed / HEART_REFILL_MS));
 
   if (hoursElapsed === 0) {
     return { newHearts: user.hearts, refilledCount: 0, heartsLastFill: user.heartsLastFill };
