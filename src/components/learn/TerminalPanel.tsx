@@ -152,7 +152,7 @@ export function TerminalPanel({
         isProcessRunning = false;
         currentInput = "";
         term.write('\r\n' + prompt);
-        // EKLENDİ: İşlem bittiğinde üst component'e isRunning state'ini false yapması için haber ver
+        // İşlem bittiğinde üst component'e isRunning state'ini false yapması için haber ver
         if (onFinishedRef.current) onFinishedRef.current();
       });
 
@@ -191,7 +191,7 @@ export function TerminalPanel({
         }
       });
 
-      // EKLENDİ: Event listener hafıza sızıntısı önleme
+      // Event listener hafıza sızıntısı önleme
       const handleResize = () => { try { fit.fit(); } catch (e) { } };
       window.addEventListener('resize', handleResize);
 
@@ -211,7 +211,6 @@ export function TerminalPanel({
     };
   }, []);
 
-  // DÜZELTİLDİ: isRunning Effect'i daha güvenli hale getirildi
   useEffect(() => {
     if (!isRunning) return;
     // Bağlantı kontrolü (!socket.connected) kaldırıldı, böylece socket o anlık bağlanıyor 

@@ -71,10 +71,8 @@ function outputsMatch(expected: string, actual: string): boolean {
   const normExp = normalize(expected);
   const normAct = normalize(actual);
 
-  // Tam eşleşme (normalize sonrası)
   if (normExp === normAct) return true;
 
-  // Sayısal karşılaştırma: tek sayı içeren çıktılar için ondalık tolerans
   const expNum = parseFloat(normExp);
   const actNum = parseFloat(normAct);
   if (

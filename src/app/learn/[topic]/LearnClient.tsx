@@ -274,7 +274,6 @@ export function LearnClient({
               onCodeChange={(c, l) => { setCurrentCode(c); setCurrentLang(l); }}
               onRunRequest={() => {
                 setIsRunning(true);
-                // terminalRunRef bağlıysa direkt socket emit yap
                 if (terminalRunRef.current) {
                   terminalRunRef.current(currentCode, currentLang);
                 }
@@ -299,7 +298,7 @@ export function LearnClient({
               language={currentLang}
               onRun={() => { }}
               onRunReady={handleTerminalRunReady}
-              onFinished={() => setIsRunning(false)} // İŞTE EKLENEN KRİTİK SATIR BURASI!
+              onFinished={() => setIsRunning(false)}
             />
             {tourStep === 3 && (
               <div className="absolute bottom-[110%] right-[10%] w-80 pointer-events-auto bg-[#1e1e1e] border border-purple-500 text-white p-5 rounded-lg shadow-2xl z-50">
