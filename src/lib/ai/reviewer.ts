@@ -33,7 +33,7 @@ export interface ReviewResultPayload {
 // ─────────────────────────────────────────────
 
 const groq  = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy_key_for_build" });
-const MODEL = "llama-3.1-8b-instant";
+const MODEL = "openai/gpt-oss-120b";
 
 // ─────────────────────────────────────────────
 // YARDIMCI
