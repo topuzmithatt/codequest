@@ -70,8 +70,6 @@ export async function getChallenge(
     select: { challengeId: true },
   }).then((rows) => rows.map((r) => r.challengeId));
 
-  console.log(`[getChallenge] User=${userId}, Topic=${topic}, Language=${learningPath.language}, CurrentDifficulty=${learningPath.currentDifficulty}, AnsweredIds Count=${answeredIds.length}, AnsweredIds=${JSON.stringify(answeredIds)}`);
-
   // 1. Önce zorluk aralığına uyan statik soruyu dene
   const staticChallenge = await prisma.challenge.findFirst({
     where: {
@@ -125,11 +123,9 @@ export async function getChallenge(
         });
       }
       
-      console.log(`[getChallenge] Topic completed! Advancing from ${topic} to ${nextTopic} for user ${userId}`);
       return { redirectTo: `/learn/${nextTopic}?lpId=${learningPath.id}` };
     } else {
       // Tüm konular bitmiş! Kullanıcıyı tebrik ekranı için profile yönlendir
-      console.log(`[getChallenge] All topics completed for user ${userId}! Redirecting to profile.`);
       return { redirectTo: `/profile?completedPath=${learningPath.id}` };
     }
   }

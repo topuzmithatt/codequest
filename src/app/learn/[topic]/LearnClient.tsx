@@ -124,8 +124,6 @@ export function LearnClient({
   }, []);
 
   const handleReviewReady = useCallback((_submissionId: string, data: any) => {
-    console.log("🎯 SUBMIT SONRASI GELEN DATA:", data); // BUNU EKLE
-
     // ... kodun devamı    
     if (data.review) setReviewData(data.review);
     setSubmissionPassed(!!data.passed);
@@ -158,7 +156,6 @@ export function LearnClient({
   const handleTerminalRunReady = useCallback((fn: (code: string, language: string) => void) => {
     terminalRunRef.current = fn;
     (window as any)._dbg_terminalRun = fn; // debug
-    console.log('terminalRunRef set edildi');
   }, []);
 
   const handleReviewClose = useCallback(() => {
