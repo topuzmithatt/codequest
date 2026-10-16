@@ -149,10 +149,6 @@ export function LearnClient({
     setReviewOpen(true);
   }, [selectedTestIndex]);
 
-  const handleTerminalRun = useCallback((stdin: string) => {
-    runWithStdinRef.current?.(stdin);
-  }, []);
-
   const handleTerminalRunReady = useCallback((fn: (code: string, language: string) => void) => {
     terminalRunRef.current = fn;
   }, []);

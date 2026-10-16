@@ -127,7 +127,7 @@ async function execute(
     }
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!fs.existsSync(TEMP_DIR)) {
       try {
         fs.mkdirSync(TEMP_DIR, { recursive: true });
