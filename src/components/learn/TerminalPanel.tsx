@@ -79,7 +79,6 @@ export function TerminalPanel({
   useEffect(() => {
     if (onRunReady && doRunRef.current) {
       onRunReady(doRunRef.current);
-      (window as any)._dbg_terminalRun = doRunRef.current;
     }
   }, [onRunReady]);
 
@@ -117,7 +116,6 @@ export function TerminalPanel({
       const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || `http://${window.location.hostname}:3001`;
       const socket = io(socketUrl);
       socketRef.current = socket;
-      (window as any)._dbg_socket = socket;
 
       let isProcessRunning = false;
       let currentInput = "";
@@ -134,11 +132,9 @@ export function TerminalPanel({
       };
 
       doRunRef.current = doRun;
-      (window as any)._dbg_doRun = doRun;
 
       if (onRunReadyRef.current) {
         onRunReadyRef.current(doRun);
-        (window as any)._dbg_terminalRun = doRun;
       }
 
       socket.on('connect', () => {

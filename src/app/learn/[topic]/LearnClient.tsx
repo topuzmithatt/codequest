@@ -155,7 +155,6 @@ export function LearnClient({
 
   const handleTerminalRunReady = useCallback((fn: (code: string, language: string) => void) => {
     terminalRunRef.current = fn;
-    (window as any)._dbg_terminalRun = fn; // debug
   }, []);
 
   const handleReviewClose = useCallback(() => {
