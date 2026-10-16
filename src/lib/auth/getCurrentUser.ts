@@ -35,7 +35,6 @@ export async function getCurrentUser(): Promise<User> {
     error,
   } = await supabase.auth.getUser();
 
-  // Oturum yoksa veya token geçersizse login'e yönlendir
   if (error || !authUser) {
     redirect("/login");
   }

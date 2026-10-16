@@ -79,7 +79,6 @@ export function TerminalPanel({
   useEffect(() => {
     if (onRunReady && doRunRef.current) {
       onRunReady(doRunRef.current);
-      (window as any)._dbg_terminalRun = doRunRef.current;
     }
   }, [onRunReady]);
 
@@ -117,7 +116,6 @@ export function TerminalPanel({
       const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || `http://${window.location.hostname}:3001`;
       const socket = io(socketUrl);
       socketRef.current = socket;
-      (window as any)._dbg_socket = socket;
 
       let isProcessRunning = false;
       let currentInput = "";
@@ -134,11 +132,9 @@ export function TerminalPanel({
       };
 
       doRunRef.current = doRun;
-      (window as any)._dbg_doRun = doRun;
 
       if (onRunReadyRef.current) {
         onRunReadyRef.current(doRun);
-        (window as any)._dbg_terminalRun = doRun;
       }
 
       socket.on('connect', () => {
@@ -156,7 +152,7 @@ export function TerminalPanel({
         isProcessRunning = false;
         currentInput = "";
         term.write('\r\n' + prompt);
-        // EKLENDİ: İşlem bittiğinde üst component'e isRunning state'ini false yapması için haber ver
+        // İşlem bittiğinde üst component'e isRunning state'ini false yapması için haber ver
         if (onFinishedRef.current) onFinishedRef.current();
       });
 
@@ -195,7 +191,7 @@ export function TerminalPanel({
         }
       });
 
-      // EKLENDİ: Event listener hafıza sızıntısı önleme
+      // Event listener hafıza sızıntısı önleme
       const handleResize = () => { try { fit.fit(); } catch (e) { } };
       window.addEventListener('resize', handleResize);
 
@@ -215,7 +211,6 @@ export function TerminalPanel({
     };
   }, []);
 
-  // DÜZELTİLDİ: isRunning Effect'i daha güvenli hale getirildi
   useEffect(() => {
     if (!isRunning) return;
     // Bağlantı kontrolü (!socket.connected) kaldırıldı, böylece socket o anlık bağlanıyor 

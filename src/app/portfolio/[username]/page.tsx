@@ -2,7 +2,6 @@
 // Next.js 15 App Router — Server Component
 
 import { notFound }  from "next/navigation";
-import { redirect }  from "next/navigation";
 import { prisma }    from "@/lib/prisma";
 import { createServerClient } from "@supabase/ssr";
 import { cookies }   from "next/headers";

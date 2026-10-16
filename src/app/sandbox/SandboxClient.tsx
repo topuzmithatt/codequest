@@ -119,10 +119,6 @@ export function SandboxClient({ userId, hearts, xp, level, streak, username }: S
     }
   }, [pendingPortfolio]);
 
-  const handleTerminalRun = useCallback((stdin: string) => {
-    runWithStdinRef.current?.(stdin);
-  }, []);
-
   return (
     <VSCodeLayout userId={userId} tabs={tabs} hearts={hearts} xp={xp} level={level} streak={streak} username={username}>
       <div className="flex flex-col h-full overflow-hidden">

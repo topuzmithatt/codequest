@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 
 // ─── Tipler ──────────────────────────────────────────────────────
 
@@ -81,7 +81,6 @@ export function ProfileHeader({ user }: { user: ProfileUser }) {
   const lvlColor   = scoreColor(user.level);
   const progress   = xpProgress(user.xp, user.level);
   const nextThresh = LEVEL_THRESHOLDS[user.level] ?? 9999;
-  const baseXP     = LEVEL_BASES[user.level] ?? 0;
 
   return (
     <div
